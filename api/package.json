@@ -1,0 +1,27 @@
+{
+  "name": "evalx-api",
+  "version": "1.0.0",
+  "description": "EvalX API Gateway - Express v5",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "express": "^5.0.0",
+    "pg": "^8.11.3",
+    "redis": "^4.6.13",
+    "kafkajs": "^2.2.4",
+    "socket.io": "^4.7.4",
+    "dotenv": "^16.4.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "evalx-worker",
+  "version": "1.0.0",
+  "description": "EvalX Worker - Kafka consumer for LLM evaluation jobs",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "dotenv": "^16.4.5",
+    "groq-sdk": "^0.3.3",
+    "@google/generative-ai": "^0.2.1",
+    "ollama": "^0.5.0",
+    "p-retry": "^6.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
