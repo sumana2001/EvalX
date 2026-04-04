@@ -1,43 +1,92 @@
 import dotenv from 'dotenv';
-import { initProviders, listProviders, completeWithProvider } from './providers/index.js';
+import { initProviders, listProviders } from './providers/index.js';
+import {
+  initKafka,
+  createConsumer,
+  createProducer,
+  subscribeToTasks,
+  startConsuming,
+  disconnect,
+} from './lib/kafka.js';
+import { createJobProcessor } from './jobProcessor.js';
 
 dotenv.config();
 
 console.log('[Worker] EvalX Worker starting...');
 
-// Initialize LLM providers
-initProviders();
+// Graceful shutdown
+let isShuttingDown = false;
 
-// List active providers
-const activeProviders = listProviders();
-console.log('[Worker] Active providers:', activeProviders.map((p) => p.name).join(', ') || 'none');
+async function shutdown(signal) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
 
-// Quick test function (can be called manually)
-export async function testProvider(model = 'llama-3.3-70b') {
-  console.log(`[Worker] Testing provider for model: ${model}`);
+  console.log(`\n[Worker] Received ${signal}. Shutting down gracefully...`);
 
   try {
-    const result = await completeWithProvider({
-      model,
-      prompt: 'What is 2+2? Reply with just the number.',
-      maxTokens: 10,
-      temperature: 0,
-    });
-
-    console.log('[Worker] Test result:', {
-      content: result.content.trim(),
-      tokens: result.totalTokens,
-      latency: `${result.latencyMs}ms`,
-      provider: result.provider,
-    });
-
-    return result;
+    await disconnect();
+    console.log('[Worker] Cleanup complete. Exiting.');
+    process.exit(0);
   } catch (err) {
-    console.error('[Worker] Test failed:', err.message);
-    throw err;
+    console.error('[Worker] Error during shutdown:', err);
+    process.exit(1);
   }
 }
 
-console.log('[Worker] Waiting for Kafka consumer implementation.');
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
-// Placeholder - Kafka consumer will be implemented next
+// Main startup
+async function main() {
+  try {
+    // 1. Initialize LLM providers
+    initProviders();
+    const activeProviders = listProviders();
+    console.log(
+      '[Worker] Active providers:',
+      activeProviders.map((p) => p.name).join(', ') || 'none'
+    );
+
+    if (activeProviders.length === 0) {
+      console.warn(
+        '[Worker] WARNING: No LLM providers configured. ' +
+        'Set GROQ_API_KEY, GEMINI_API_KEY, or ensure Ollama is running.'
+      );
+    }
+
+    // 2. Initialize Kafka
+    const { groupId } = initKafka();
+
+    // 3. Create consumer and producer
+    await createConsumer(groupId);
+    await createProducer();
+
+    // 4. Subscribe to tasks topic
+    await subscribeToTasks();
+
+    // 5. Create job processor
+    const processor = createJobProcessor({
+      onSuccess: (result) => {
+        console.log(
+          `[Worker] ✓ Job ${result.job_id} succeeded: ` +
+          `${result.model} in ${result.latency_ms}ms`
+        );
+      },
+      onFailure: (result) => {
+        console.log(
+          `[Worker] ✗ Job ${result.job_id} failed: ` +
+          `${result.failure_type} - ${result.error_message}`
+        );
+      },
+    });
+
+    // 6. Start consuming
+    console.log('[Worker] Ready! Waiting for jobs...');
+    await startConsuming(processor);
+  } catch (err) {
+    console.error('[Worker] Failed to start:', err);
+    process.exit(1);
+  }
+}
+
+main();
