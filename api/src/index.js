@@ -13,6 +13,8 @@ import { errorHandler, asyncHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFound.js';
 import { ValidationError } from './lib/errors.js';
 import tasksRouter from './routes/tasks.js';
+import promptsRouter from './routes/prompts.js';
+import runsRouter from './routes/runs.js';
 
 dotenv.config();
 validateConfig();
@@ -91,6 +93,8 @@ app.get('/api/test-error', asyncHandler(async (req, res) => {
 
 // API Routes
 app.use('/api/tasks', tasksRouter);
+app.use('/api/prompts', promptsRouter);
+app.use('/api/runs', runsRouter);
 
 // ============================================================
 // Error Handling (MUST be last)
