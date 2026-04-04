@@ -1,0 +1,14 @@
+# Grafana Dashboard Provisioning
+# Dashboards will be loaded from JSON files in this directory
+
+apiVersion: 1
+
+providers:
+  - name: "EvalX Dashboards"
+    orgId: 1
+    folder: "EvalX"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

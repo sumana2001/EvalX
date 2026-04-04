@@ -1,0 +1,34 @@
+# EvalX Prometheus Configuration
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Node.js API Gateway
+  # Uncomment when API exposes /metrics
+  # - job_name: "evalx-api"
+  #   static_configs:
+  #     - targets: ["host.docker.internal:3001"]
+
+  # Node.js Worker
+  # Uncomment when Worker exposes /metrics
+  # - job_name: "evalx-worker"
+  #   static_configs:
+  #     - targets: ["host.docker.internal:3002"]
+
+  # Python Evaluator
+  # Uncomment when Evaluator exposes /metrics
+  # - job_name: "evalx-evaluator"
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8000"]
+
+  # Redpanda metrics (internal)
+  - job_name: "redpanda"
+    static_configs:
+      - targets: ["redpanda:9644"]
