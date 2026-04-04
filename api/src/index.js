@@ -8,6 +8,12 @@ import {
   healthCheck as redisHealthCheck,
   disconnectRedis,
 } from './lib/redis.js';
+import {
+  connectProducer,
+  disconnectProducer,
+  ensureTopics,
+  healthCheck as kafkaHealthCheck,
+} from './lib/kafka.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { errorHandler, asyncHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFound.js';
@@ -45,12 +51,13 @@ app.use(express.json({ limit: '10mb' })); // Large limit for dataset uploads
 
 // Health check - returns status of all dependencies
 app.get('/health', asyncHandler(async (req, res) => {
-  const [dbOk, redisOk] = await Promise.all([
+  const [dbOk, redisOk, kafkaOk] = await Promise.all([
     dbHealthCheck(),
     redisHealthCheck(),
+    kafkaHealthCheck(),
   ]);
 
-  const healthy = dbOk && redisOk;
+  const healthy = dbOk && redisOk && kafkaOk;
 
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'ok' : 'degraded',
@@ -59,6 +66,7 @@ app.get('/health', asyncHandler(async (req, res) => {
     dependencies: {
       postgres: dbOk ? 'ok' : 'error',
       redis: redisOk ? 'ok' : 'error',
+      kafka: kafkaOk ? 'ok' : 'error',
     },
   });
 }));
@@ -109,8 +117,9 @@ app.use(errorHandler);
 // Graceful shutdown handler
 async function shutdown(signal) {
   console.log(`\n[API] Received ${signal}. Shutting down gracefully...`);
-  
+
   try {
+    await disconnectProducer();
     await closePool();
     await disconnectRedis();
     console.log('[API] Cleanup complete. Exiting.');
@@ -129,14 +138,19 @@ async function start() {
   try {
     // Connect to Redis first (DB pool connects lazily on first query)
     await connectRedis();
-    
+
     // Verify DB connection
     const dbOk = await dbHealthCheck();
     if (!dbOk) {
       throw new Error('Database connection failed');
     }
     console.log('[API] Database connection verified');
-    
+
+    // Connect Kafka producer and ensure topics exist
+    await connectProducer();
+    await ensureTopics();
+    console.log('[API] Kafka producer connected');
+
     app.listen(config.port, () => {
       console.log(`[API] EvalX API Gateway listening on port ${config.port}`);
       console.log(`[API] Health check: http://localhost:${config.port}/health`);

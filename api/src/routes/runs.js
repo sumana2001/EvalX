@@ -15,10 +15,12 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { ValidationError, NotFoundError, ConflictError } from '../lib/errors.js';
 import { query, getClient } from '../lib/db.js';
 import { initRunProgress, getRunProgress } from '../lib/redis.js';
+import { sendBatch, TOPICS } from '../lib/kafka.js';
 
 const router = Router();
 
@@ -310,7 +312,7 @@ router.get(
 );
 
 // ============================================================
-// POST /api/runs/:id/start - Start the run (placeholder)
+// POST /api/runs/:id/start - Start the run (fan-out to Kafka)
 // ============================================================
 router.post(
   '/:id/start',
@@ -318,9 +320,14 @@ router.post(
     const { id } = req.params;
     validateUuid(id);
 
-    // Get run and verify it's pending
+    // 1. Get run with task info and verify it's pending
     const runResult = await query(
-      `SELECT id, status, total_jobs FROM evaluation_runs WHERE id = $1`,
+      `SELECT 
+        r.id, r.status, r.total_jobs, r.task_id, r.models, r.repetitions,
+        t.expected_schema
+       FROM evaluation_runs r
+       JOIN evaluation_tasks t ON t.id = r.task_id
+       WHERE r.id = $1`,
       [id]
     );
 
@@ -336,7 +343,68 @@ router.post(
       });
     }
 
-    // Update status to running
+    // 2. Get all task items
+    const itemsResult = await query(
+      `SELECT id, input, context, ground_truth
+       FROM evaluation_task_items
+       WHERE task_id = $1
+       ORDER BY created_at ASC`,
+      [run.task_id]
+    );
+
+    if (itemsResult.rowCount === 0) {
+      throw new ValidationError('Task has no items', { task_id: run.task_id });
+    }
+
+    // 3. Get all prompt variants linked to this run
+    const promptsResult = await query(
+      `SELECT p.id, p.name, p.template, p.system_prompt
+       FROM prompt_variants p
+       JOIN run_prompt_variants rpv ON rpv.prompt_variant_id = p.id
+       WHERE rpv.run_id = $1`,
+      [id]
+    );
+
+    // 4. Generate all job permutations
+    const jobs = [];
+    const items = itemsResult.rows;
+    const prompts = promptsResult.rows;
+    const models = run.models;
+    const repetitions = run.repetitions;
+
+    for (const item of items) {
+      for (const prompt of prompts) {
+        for (const model of models) {
+          for (let rep = 1; rep <= repetitions; rep++) {
+            jobs.push({
+              message: {
+                job_id: randomUUID(),
+                run_id: id,
+                task_item: {
+                  id: item.id,
+                  input: item.input,
+                  context: item.context,
+                  ground_truth: item.ground_truth,
+                },
+                prompt_variant: {
+                  id: prompt.id,
+                  name: prompt.name,
+                  template: prompt.template,
+                  system_prompt: prompt.system_prompt,
+                },
+                model,
+                repetition_index: rep,
+                expected_schema: run.expected_schema,
+              },
+              // Use run_id as partition key for ordering within a run
+              key: id,
+            });
+          }
+        }
+      }
+    }
+
+    // 5. Update status to running BEFORE sending to Kafka
     await query(
       `UPDATE evaluation_runs 
        SET status = 'running', started_at = NOW() 
@@ -344,14 +412,29 @@ router.post(
       [id]
     );
 
-    // TODO: Kafka fan-out will be implemented in next logical unit
-    // For now, just mark as running
+    // 6. Send all jobs to Kafka in batches (to avoid memory issues)
+    const BATCH_SIZE = 1000;
+    let sentCount = 0;
+
+    for (let i = 0; i < jobs.length; i += BATCH_SIZE) {
+      const batch = jobs.slice(i, i + BATCH_SIZE);
+      await sendBatch(TOPICS.EVALUATION_TASKS, batch);
+      sentCount += batch.length;
+    }
+
+    console.log(`[Runs] Fan-out complete: ${sentCount} jobs sent to Kafka for run ${id}`);
 
     res.json({
       id,
       status: 'running',
-      message: 'Run started. Kafka fan-out will be implemented next.',
       total_jobs: run.total_jobs,
+      jobs_published: sentCount,
+      breakdown: {
+        items: items.length,
+        prompts: prompts.length,
+        models: models.length,
+        repetitions,
+      },
     });
   })
 );
