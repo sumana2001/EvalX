@@ -12,6 +12,7 @@ import { requestLogger } from './middleware/requestLogger.js';
 import { errorHandler, asyncHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFound.js';
 import { ValidationError } from './lib/errors.js';
+import tasksRouter from './routes/tasks.js';
 
 dotenv.config();
 validateConfig();
@@ -87,6 +88,9 @@ app.get('/api/test-error', asyncHandler(async (req, res) => {
 
   res.json({ message: 'No error triggered. Use ?type=validation|async|sync' });
 }));
+
+// API Routes
+app.use('/api/tasks', tasksRouter);
 
 // ============================================================
 // Error Handling (MUST be last)
