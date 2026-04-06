@@ -17,7 +17,10 @@ from typing import Any
 
 from groq import Groq, RateLimitError, APIError
 
-from config import settings
+from .config import get_settings
+
+# Initialize settings using get_settings()
+settings = get_settings()
 
 
 # Groq client (lazy initialized)

@@ -12,7 +12,10 @@ from numpy.typing import NDArray
 from functools import lru_cache
 from sentence_transformers import SentenceTransformer
 
-from config import settings
+from .config import get_settings
+
+# Initialize settings using get_settings()
+settings = get_settings()
 
 
 # Module-level model cache
