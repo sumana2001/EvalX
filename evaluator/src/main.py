@@ -128,9 +128,9 @@ async def evaluate(request: EvaluationRequest):
             faithfulness, _ = context_faithfulness(output_text, context_chunks)
             
             # Check faithfulness threshold
-            if faithfulness < settings.faithfulness_threshold and failure_type is None:
+            if faithfulness < settings.threshold_faithfulness and failure_type is None:
                 failure_type = FailureType.HALLUCINATION_DETECTED
-                failure_reason = f"Faithfulness {faithfulness:.2f} below threshold {settings.faithfulness_threshold}"
+                failure_reason = f"Faithfulness {faithfulness:.2f} below threshold {settings.threshold_faithfulness}"
         
         # === Pillar 5: LLM-as-a-Judge ===
         judge_score = None
@@ -156,9 +156,9 @@ async def evaluate(request: EvaluationRequest):
                     failure_reason = f"Judge score {judge_score}/10: {judge_reasoning}"
         
         # === Check completeness threshold ===
-        if completeness < settings.completeness_threshold and failure_type is None:
+        if completeness < settings.threshold_completeness and failure_type is None:
             failure_type = FailureType.INCOMPLETE_OUTPUT
-            failure_reason = f"Completeness {completeness:.2f} below threshold {settings.completeness_threshold}"
+            failure_reason = f"Completeness {completeness:.2f} below threshold {settings.threshold_completeness}"
         
         # === Build Metrics ===
         metrics = EvaluationMetrics(
