@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { BarChart3, Play, Settings, Database } from 'lucide-react';
+import TasksPage from './pages/TasksPage';
 
 // Placeholder pages - will be implemented in next commits
 function Dashboard() {
@@ -19,20 +20,6 @@ function Dashboard() {
           <h3 className="text-sm font-medium text-stone-500 mb-1">Avg Latency</h3>
           <p className="text-3xl font-semibold text-stone-900">-- ms</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Tasks() {
-  return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-stone-900">Evaluation Tasks</h1>
-        <button className="btn-primary">New Task</button>
-      </div>
-      <div className="card p-6">
-        <p className="text-stone-500">No tasks yet. Create your first evaluation task to get started.</p>
       </div>
     </div>
   );
@@ -113,7 +100,7 @@ function App() {
         <main className="flex-1 bg-stone-50">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/tasks" element={<TasksPage />} />
             <Route path="/runs" element={<Runs />} />
             <Route path="/results" element={<Results />} />
           </Routes>
