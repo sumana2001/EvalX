@@ -2,8 +2,9 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { BarChart3, Play, Settings, Database } from 'lucide-react';
 import TasksPage from './pages/TasksPage';
 import RunsPage from './pages/RunsPage';
+import ResultsPage from './pages/ResultsPage';
 
-// Placeholder pages - will be implemented in next commits
+// Dashboard placeholder - summarizes overall metrics
 function Dashboard() {
   return (
     <div className="p-8">
@@ -22,16 +23,10 @@ function Dashboard() {
           <p className="text-3xl font-semibold text-stone-900">-- ms</p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Results() {
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold text-stone-900 mb-6">Results</h1>
-      <div className="card p-6">
-        <p className="text-stone-500">Results will appear here after completing evaluation runs.</p>
+      <div className="mt-6 card p-6">
+        <p className="text-stone-500">
+          Create tasks and runs to see metrics here. Visit <strong>Results</strong> after completing runs.
+        </p>
       </div>
     </div>
   );
@@ -89,7 +84,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/runs" element={<RunsPage />} />
-            <Route path="/results" element={<Results />} />
+            <Route path="/results" element={<ResultsPage />} />
           </Routes>
         </main>
       </div>
