@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { BarChart3, Play, Settings, Database } from 'lucide-react';
 import TasksPage from './pages/TasksPage';
+import RunsPage from './pages/RunsPage';
 
 // Placeholder pages - will be implemented in next commits
 function Dashboard() {
@@ -20,20 +21,6 @@ function Dashboard() {
           <h3 className="text-sm font-medium text-stone-500 mb-1">Avg Latency</h3>
           <p className="text-3xl font-semibold text-stone-900">-- ms</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Runs() {
-  return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-stone-900">Evaluation Runs</h1>
-        <button className="btn-primary">New Run</button>
-      </div>
-      <div className="card p-6">
-        <p className="text-stone-500">No runs yet. Start a run to evaluate your LLM outputs.</p>
       </div>
     </div>
   );
@@ -101,7 +88,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/runs" element={<Runs />} />
+            <Route path="/runs" element={<RunsPage />} />
             <Route path="/results" element={<Results />} />
           </Routes>
         </main>
