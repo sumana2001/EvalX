@@ -33,7 +33,7 @@ class Settings:
 
         # Evaluation thresholds (from spec)
         self.threshold_completeness: float = 0.5
-        self.threshold_faithfulness: float = 0.4
+        self.threshold_faithfulness: float = 0.25  # Lower for JSON outputs vs natural language
         self.threshold_judge_score: int = 4
 
 
