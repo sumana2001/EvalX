@@ -16,6 +16,7 @@
     "redis": "^4.6.13",
     "kafkajs": "^2.2.4",
     "socket.io": "^4.7.4",
+    "@socket.io/redis-adapter": "^8.3.0",
     "dotenv": "^16.4.5",
     "zod": "^3.22.4"
   },
