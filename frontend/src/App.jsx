@@ -1,35 +1,126 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { BarChart3, Play, Settings, Database } from 'lucide-react';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+// Placeholder pages - will be implemented in next commits
+function Dashboard() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="p-8">
+      <h1 className="text-2xl font-semibold text-stone-900 mb-6">Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="card p-6">
+          <h3 className="text-sm font-medium text-stone-500 mb-1">Total Runs</h3>
+          <p className="text-3xl font-semibold text-stone-900">0</p>
+        </div>
+        <div className="card p-6">
+          <h3 className="text-sm font-medium text-stone-500 mb-1">Success Rate</h3>
+          <p className="text-3xl font-semibold text-success-600">--</p>
+        </div>
+        <div className="card p-6">
+          <h3 className="text-sm font-medium text-stone-500 mb-1">Avg Latency</h3>
+          <p className="text-3xl font-semibold text-stone-900">-- ms</p>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+function Tasks() {
+  return (
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-stone-900">Evaluation Tasks</h1>
+        <button className="btn-primary">New Task</button>
+      </div>
+      <div className="card p-6">
+        <p className="text-stone-500">No tasks yet. Create your first evaluation task to get started.</p>
+      </div>
+    </div>
+  );
+}
+
+function Runs() {
+  return (
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-stone-900">Evaluation Runs</h1>
+        <button className="btn-primary">New Run</button>
+      </div>
+      <div className="card p-6">
+        <p className="text-stone-500">No runs yet. Start a run to evaluate your LLM outputs.</p>
+      </div>
+    </div>
+  );
+}
+
+function Results() {
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-semibold text-stone-900 mb-6">Results</h1>
+      <div className="card p-6">
+        <p className="text-stone-500">Results will appear here after completing evaluation runs.</p>
+      </div>
+    </div>
+  );
+}
+
+// Navigation link component
+function NavItem({ to, icon: Icon, children }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors duration-150 ${
+          isActive
+            ? 'bg-accent-100 text-accent-700 font-medium'
+            : 'text-stone-600 hover:bg-stone-100'
+        }`
+      }
+    >
+      <Icon size={20} />
+      <span>{children}</span>
+    </NavLink>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen flex">
+        {/* Sidebar */}
+        <aside className="w-64 bg-white border-r border-stone-200 flex flex-col">
+          {/* Logo */}
+          <div className="h-16 flex items-center px-6 border-b border-stone-200">
+            <h1 className="text-xl font-semibold text-stone-900">
+              Eval<span className="text-accent-600">X</span>
+            </h1>
+          </div>
+          
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1">
+            <NavItem to="/" icon={BarChart3}>Dashboard</NavItem>
+            <NavItem to="/tasks" icon={Database}>Tasks</NavItem>
+            <NavItem to="/runs" icon={Play}>Runs</NavItem>
+            <NavItem to="/results" icon={Settings}>Results</NavItem>
+          </nav>
+          
+          {/* Footer */}
+          <div className="p-4 border-t border-stone-200">
+            <p className="text-xs text-stone-400">EvalX v1.0.0</p>
+          </div>
+        </aside>
+        
+        {/* Main content */}
+        <main className="flex-1 bg-stone-50">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/runs" element={<Runs />} />
+            <Route path="/results" element={<Results />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
+  );
+}
+
+export default App;
