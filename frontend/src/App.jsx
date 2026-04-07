@@ -85,6 +85,7 @@ function App() {
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/runs" element={<RunsPage />} />
             <Route path="/results" element={<ResultsPage />} />
+            <Route path="/results/:runId" element={<ResultsPage />} />
           </Routes>
         </main>
       </div>

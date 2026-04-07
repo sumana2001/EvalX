@@ -30,6 +30,7 @@ import { ValidationError } from './lib/errors.js';
 import tasksRouter from './routes/tasks.js';
 import promptsRouter from './routes/prompts.js';
 import runsRouter from './routes/runs.js';
+import resultsRouter from './routes/results.js';
 
 dotenv.config();
 validateConfig();
@@ -112,6 +113,7 @@ app.get('/api/test-error', asyncHandler(async (req, res) => {
 app.use('/api/tasks', tasksRouter);
 app.use('/api/prompts', promptsRouter);
 app.use('/api/runs', runsRouter);
+app.use('/api/results', resultsRouter);
 
 // ============================================================
 // Error Handling (MUST be last)

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Play, CheckCircle, XCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { runsApi, tasksApi } from '../lib/api';
 import { useMultiRunProgress } from '../hooks/useRunProgress';
@@ -8,6 +9,7 @@ import { connectSocket } from '../lib/socket';
  * Runs Page - Create and monitor evaluation runs with real-time progress.
  */
 export default function RunsPage() {
+  const navigate = useNavigate();
   const [runs, setRuns] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,12 +32,23 @@ export default function RunsPage() {
   useEffect(() => {
     const socket = connectSocket();
     
-    const handleStatusChanged = (data) => {
+    const handleStatusChanged = async (data) => {
       console.log('[RunsPage] Run status changed:', data);
+      
       // Update the run status locally
       setRuns(prevRuns => prevRuns.map(r => 
         r.id === data.runId ? { ...r, status: data.status } : r
       ));
+
+      // If run is completed or failed, refresh to get final stats
+      if (data.status === 'completed' || data.status === 'failed') {
+        try {
+          const runsData = await runsApi.list();
+          setRuns(runsData.runs || []);
+        } catch (err) {
+          console.error('[RunsPage] Failed to refresh runs:', err);
+        }
+      }
     };
 
     socket.on('runs:statusChanged', handleStatusChanged);
@@ -158,6 +171,7 @@ export default function RunsPage() {
               key={run.id}
               run={run}
               onStart={() => handleStartRun(run.id)}
+              onViewResults={() => navigate(`/results/${run.id}`)}
             />
           ))}
         </div>
@@ -169,14 +183,28 @@ export default function RunsPage() {
 /**
  * Run card component with progress bar.
  */
-function RunCard({ run, onStart }) {
+function RunCard({ run, onStart, onViewResults }) {
   const progress = run.progress;
-  const percentComplete = progress?.percentComplete || 0;
   const isActive = run.status === 'running';
   const isPending = run.status === 'pending';
+  const canViewResults = run.status === 'completed' || run.status === 'failed';
+
+  // Calculate progress percentage from various sources
+  const getProgressPercent = () => {
+    if (progress?.percentComplete != null) return progress.percentComplete;
+    if (run.total_jobs > 0) {
+      const processed = (run.completed_jobs || 0) + (run.failed_jobs || 0);
+      return Math.round((processed / run.total_jobs) * 100);
+    }
+    return 0;
+  };
+  const percentComplete = getProgressPercent();
 
   return (
-    <div className="card">
+    <div 
+      className={`card ${canViewResults ? 'cursor-pointer hover:border-accent-300 transition-colors' : ''}`}
+      onClick={canViewResults ? onViewResults : undefined}
+    >
       <div className="p-4">
         {/* Header row */}
         <div className="flex items-center justify-between mb-3">
@@ -192,7 +220,7 @@ function RunCard({ run, onStart }) {
           <div className="flex items-center gap-3">
             <StatusBadge status={run.status} />
             {isPending && (
-              <button onClick={onStart} className="btn-primary text-sm py-1.5">
+              <button onClick={(e) => { e.stopPropagation(); onStart(); }} className="btn-primary text-sm py-1.5">
                 Start Run
               </button>
             )}
@@ -205,7 +233,9 @@ function RunCard({ run, onStart }) {
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-stone-600">Progress</span>
               <span className="text-stone-900 font-medium">
-                {progress ? `${progress.completed + progress.failed} / ${progress.total}` : `${run.completed_jobs || 0} / ${run.total_jobs || 0}`}
+                {progress 
+                  ? `${progress.completed + progress.failed} / ${progress.total}` 
+                  : `${(run.completed_jobs || 0) + (run.failed_jobs || 0)} / ${run.total_jobs || 0}`}
               </span>
             </div>
             <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
@@ -215,22 +245,24 @@ function RunCard({ run, onStart }) {
                   run.status === 'completed' ? 'bg-success-500' :
                   'bg-accent-500'
                 }`}
-                style={{ width: `${progress?.percentComplete || percentComplete || (run.completed_jobs / run.total_jobs * 100) || 0}%` }}
+                style={{ width: `${percentComplete}%` }}
               />
             </div>
             
-            {/* Stats row */}
-            {progress && (
+            {/* Stats row - show even without socket progress for completed/failed */}
+            {(progress || run.status === 'completed' || run.status === 'failed') && (
               <div className="flex items-center gap-6 mt-3 text-sm">
                 <span className="text-success-600">
-                  ✓ {progress.completed} completed
+                  ✓ {progress?.completed ?? run.completed_jobs ?? 0} completed
                 </span>
                 <span className="text-error-600">
-                  ✗ {progress.failed} failed
+                  ✗ {progress?.failed ?? run.failed_jobs ?? 0} failed
                 </span>
-                <span className="text-stone-500">
-                  ◷ {progress.pending} pending
-                </span>
+                {progress && (
+                  <span className="text-stone-500">
+                    ◷ {progress.pending} pending
+                  </span>
+                )}
               </div>
             )}
           </div>

@@ -192,8 +192,25 @@ router.get(
       ORDER BY r.created_at DESC
     `);
 
+    // For running runs, merge real-time progress from Redis
+    const runs = await Promise.all(
+      result.rows.map(async (run) => {
+        if (run.status === 'running') {
+          const progress = await getRunProgress(run.id);
+          if (progress) {
+            return {
+              ...run,
+              completed_jobs: progress.completed,
+              failed_jobs: progress.failed,
+            };
+          }
+        }
+        return run;
+      })
+    );
+
     res.json({
-      runs: result.rows,
+      runs,
       count: result.rowCount,
     });
   })

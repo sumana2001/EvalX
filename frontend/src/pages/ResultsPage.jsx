@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import {
   BarChart,
   Bar,
@@ -41,7 +41,8 @@ const MODEL_COLORS = [
  */
 export default function ResultsPage() {
   const [searchParams] = useSearchParams();
-  const runIdParam = searchParams.get('run');
+  const { runId: pathRunId } = useParams();
+  const runIdParam = pathRunId || searchParams.get('run');
 
   const [runs, setRuns] = useState([]);
   const [selectedRunId, setSelectedRunId] = useState(runIdParam || '');
