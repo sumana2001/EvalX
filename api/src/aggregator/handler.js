@@ -69,10 +69,16 @@ async function callEvaluator(result) {
 
     const evaluation = await response.json();
 
-    console.log(`[Aggregator] Evaluator returned: status=${evaluation.status}, metrics=${JSON.stringify(evaluation.metrics)}`);
+    console.log(`[Aggregator] Evaluator returned for ${result.job_id}:`, JSON.stringify(evaluation, null, 2));
 
     // Extract metrics from the nested structure
+    // The evaluator should always return metrics now, but handle null case
     const evalMetrics = evaluation.metrics || {};
+    
+    // Log if metrics are missing (shouldn't happen after evaluator fix)
+    if (!evaluation.metrics) {
+      console.warn(`[Aggregator] Warning: evaluator returned null metrics for ${result.job_id}, status=${evaluation.status}`);
+    }
 
     // Merge evaluation metrics into result
     return {

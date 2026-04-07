@@ -148,7 +148,7 @@ class EvaluationResponse(BaseModel):
     # Evaluation status
     status: EvaluationStatus
 
-    # The 5 pillars (null on failure)
+    # The 5 pillars metrics (always returned for DB storage)
     metrics: Optional[EvaluationMetrics] = None
 
     # Failure info (null on success)

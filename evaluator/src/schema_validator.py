@@ -82,19 +82,21 @@ def validate_schema(
     
     Returns:
         (is_valid, parsed_data, error_message)
-        - is_valid: True if output matches schema
-        - parsed_data: Parsed JSON data (or None if parse failed)
+        - is_valid: True if output matches schema (or if no schema required)
+        - parsed_data: Parsed JSON data (or None if not JSON/parse failed)
         - error_message: Description of failure (or None if valid)
     """
-    # 1. Parse the output
+    # 1. If no schema provided, any output is valid (plain text OK)
+    if not expected_schema:
+        # Try to parse as JSON for downstream use, but don't fail if not JSON
+        parsed_data, _ = parse_json_output(raw_output)
+        return True, parsed_data, None
+    
+    # 2. Parse the output (schema requires JSON)
     parsed_data, parse_error = parse_json_output(raw_output)
     
     if parse_error:
         return False, None, f"JSON parse error: {parse_error}"
-    
-    # 2. If no schema provided, just check it's valid JSON
-    if not expected_schema:
-        return True, parsed_data, None
     
     # 3. Validate against schema
     try:

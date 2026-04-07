@@ -183,7 +183,7 @@ async def evaluate(request: EvaluationRequest):
             model=request.model,
             repetition_index=request.repetition_index,
             status=status,
-            metrics=metrics if status == EvaluationStatus.SUCCESS else None,
+            metrics=metrics,  # Always return metrics for DB storage
             failure_type=failure_type,
             failure_reason=failure_reason,
             latency_ms=request.latency_ms,
