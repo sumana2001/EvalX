@@ -5,9 +5,9 @@
  * Rate limit: ~15 requests/minute on free tier
  * 
  * Supported models:
- * - gemini-1.5-pro
- * - gemini-1.5-flash
- * - gemini-1.0-pro
+ * - gemini-2.0-flash (latest free model)
+ * - gemini-1.5-flash-latest
+ * - gemini-1.5-pro-latest
  * 
  * Docs: https://ai.google.dev/gemini-api/docs
  */
@@ -17,17 +17,19 @@ import { BaseProvider, ProviderError } from './base.js';
 
 // Model mappings (short name → full Gemini model ID)
 const MODEL_MAP = {
-  'gemini-1.5-pro': 'gemini-1.5-pro',
-  'gemini-1.5-flash': 'gemini-1.5-flash',
-  'gemini-pro': 'gemini-1.0-pro',
-  'gemini-1.0-pro': 'gemini-1.0-pro',
+  'gemini-2.0-flash': 'gemini-2.0-flash',
+  'gemini-1.5-flash': 'gemini-1.5-flash-latest',
+  'gemini-1.5-flash-latest': 'gemini-1.5-flash-latest',
+  'gemini-1.5-pro': 'gemini-1.5-pro-latest',
+  'gemini-1.5-pro-latest': 'gemini-1.5-pro-latest',
+  'gemini-pro': 'gemini-1.5-pro-latest',
 };
 
 // Pricing per 1K tokens (USD) - Reference only, FREE TIER costs $0
 const PRICING = {
-  'gemini-1.5-pro': { input: 0.00125, output: 0.00500 },
-  'gemini-1.5-flash': { input: 0.000075, output: 0.0003 },
-  'gemini-1.0-pro': { input: 0.0005, output: 0.0015 },
+  'gemini-2.0-flash': { input: 0.0, output: 0.0 },  // Free tier
+  'gemini-1.5-flash-latest': { input: 0.000075, output: 0.0003 },
+  'gemini-1.5-pro-latest': { input: 0.00125, output: 0.00500 },
 };
 
 export class GeminiProvider extends BaseProvider {

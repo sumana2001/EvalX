@@ -278,7 +278,7 @@ function CreateRunForm({ tasks, onSuccess, onCancel }) {
     { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Groq)', provider: 'groq' },
     { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Groq)', provider: 'groq' },
     { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Groq)', provider: 'groq' },
-    { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', provider: 'gemini' },
+    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Free)', provider: 'gemini' },
     { value: 'ollama/llama3', label: 'Llama 3 (Ollama Local)', provider: 'ollama' },
   ];
 

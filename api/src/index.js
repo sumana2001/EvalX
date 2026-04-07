@@ -14,6 +14,15 @@ import {
   ensureTopics,
   healthCheck as kafkaHealthCheck,
 } from './lib/kafka.js';
+import {
+  initKafka as initAggregatorKafka,
+  createConsumer as createAggregatorConsumer,
+  subscribeToResults,
+  startConsuming as startAggregatorConsuming,
+  disconnect as disconnectAggregator,
+} from './aggregator/kafka.js';
+import { handleResult } from './aggregator/handler.js';
+import { initSocketIO } from './aggregator/socket.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { errorHandler, asyncHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFound.js';
@@ -119,6 +128,7 @@ async function shutdown(signal) {
   console.log(`\n[API] Received ${signal}. Shutting down gracefully...`);
 
   try {
+    await disconnectAggregator();
     await disconnectProducer();
     await closePool();
     await disconnectRedis();
@@ -151,7 +161,22 @@ async function start() {
     await ensureTopics();
     console.log('[API] Kafka producer connected');
 
-    app.listen(config.port, () => {
+    // Create HTTP server (needed for Socket.io)
+    const { createServer } = await import('http');
+    const httpServer = createServer(app);
+
+    // Initialize Socket.io
+    initSocketIO(httpServer);
+    console.log('[API] Socket.io initialized');
+
+    // Start aggregator consumer (processes results from workers)
+    const { groupId } = initAggregatorKafka();
+    await createAggregatorConsumer(groupId);
+    await subscribeToResults();
+    await startAggregatorConsuming(handleResult);
+    console.log('[API] Aggregator consumer started');
+
+    httpServer.listen(config.port, () => {
       console.log(`[API] EvalX API Gateway listening on port ${config.port}`);
       console.log(`[API] Health check: http://localhost:${config.port}/health`);
     });
