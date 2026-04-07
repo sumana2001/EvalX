@@ -148,10 +148,10 @@ router.post(
       // 7. Return response with calculation breakdown
       res.status(201).json({
         ...run,
-        prompt_variant_ids: data.prompt_variant_ids,
+        prompt_variant_ids: promptVariantIds,
         calculation: {
           items: itemCount,
-          prompts: data.prompt_variant_ids.length,
+          prompts: promptVariantIds.length,
           models: data.models.length,
           repetitions: data.repetitions,
           total_jobs: totalJobs,
