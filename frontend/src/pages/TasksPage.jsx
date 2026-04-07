@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronRight, FileJson, AlertCircle } from 'lucide-react';
-import { tasksApi } from '../lib/api';
+import { Plus, Trash2, ChevronDown, ChevronRight, FileJson, AlertCircle, Copy, Loader2 } from 'lucide-react';
+import { tasksApi, promptsApi } from '../lib/api';
 
 /**
  * Tasks Page - Create and manage evaluation tasks.
@@ -108,17 +108,62 @@ export default function TasksPage() {
 }
 
 /**
- * Task card component - displays a single task.
+ * Task card component - displays a single task with prompt variants.
  */
 function TaskCard({ task, onDelete }) {
   const [expanded, setExpanded] = useState(false);
+  const [taskDetails, setTaskDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showAddPrompt, setShowAddPrompt] = useState(false);
+
+  // Fetch full task details when expanded
+  async function handleExpand() {
+    const newExpanded = !expanded;
+    setExpanded(newExpanded);
+    
+    if (newExpanded && !taskDetails) {
+      setLoading(true);
+      try {
+        const details = await tasksApi.get(task.id);
+        setTaskDetails(details);
+      } catch (err) {
+        console.error('Failed to load task details:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  async function handlePromptCreated(newPrompt) {
+    // Add to local state
+    setTaskDetails(prev => ({
+      ...prev,
+      prompt_variants: [...(prev?.prompt_variants || []), newPrompt],
+    }));
+    setShowAddPrompt(false);
+  }
+
+  async function handleDeletePrompt(promptId) {
+    if (!confirm('Delete this prompt variant?')) return;
+    try {
+      await promptsApi.delete(promptId);
+      setTaskDetails(prev => ({
+        ...prev,
+        prompt_variants: prev.prompt_variants.filter(p => p.id !== promptId),
+      }));
+    } catch (err) {
+      alert('Failed to delete prompt: ' + err.message);
+    }
+  }
+
+  const promptVariants = taskDetails?.prompt_variants || [];
 
   return (
     <div className="card">
       {/* Header */}
       <div
         className="p-4 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
+        onClick={handleExpand}
       >
         <div className="flex items-center gap-3">
           {expanded ? (
@@ -131,9 +176,12 @@ function TaskCard({ task, onDelete }) {
             <p className="text-sm text-stone-500">{task.description || 'No description'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className="badge badge-neutral">
             {task.item_count || 0} items
+          </span>
+          <span className="badge bg-accent-100 text-accent-700">
+            {promptVariants.length || '?'} prompts
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
@@ -147,23 +195,160 @@ function TaskCard({ task, onDelete }) {
       {/* Expanded details */}
       {expanded && (
         <div className="px-4 pb-4 border-t border-stone-100 mt-2 pt-4">
-          <div className="grid grid-cols-2 gap-6 text-sm">
-            <div>
-              <h4 className="font-medium text-stone-700 mb-2">Prompt Template</h4>
-              <pre className="bg-stone-50 p-3 rounded-lg text-stone-600 text-xs overflow-x-auto">
-                {task.prompt_template || 'N/A'}
-              </pre>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="animate-spin text-stone-400" size={24} />
             </div>
-            <div>
-              <h4 className="font-medium text-stone-700 mb-2">Expected Schema</h4>
-              <pre className="bg-stone-50 p-3 rounded-lg text-stone-600 text-xs overflow-x-auto">
-                {task.expected_schema ? JSON.stringify(task.expected_schema, null, 2) : 'N/A'}
-              </pre>
-            </div>
-          </div>
+          ) : (
+            <>
+              {/* Expected Schema */}
+              <div className="mb-6">
+                <h4 className="font-medium text-stone-700 mb-2">Expected Output Schema</h4>
+                <pre className="bg-stone-50 p-3 rounded-lg text-stone-600 text-xs overflow-x-auto">
+                  {taskDetails?.expected_schema 
+                    ? JSON.stringify(taskDetails.expected_schema, null, 2) 
+                    : task.expected_schema 
+                      ? JSON.stringify(task.expected_schema, null, 2)
+                      : 'N/A'}
+                </pre>
+              </div>
+
+              {/* Prompt Variants */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-stone-700">Prompt Variants</h4>
+                  <button
+                    onClick={() => setShowAddPrompt(true)}
+                    className="btn-ghost text-sm flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    Add Variant
+                  </button>
+                </div>
+
+                {/* Add prompt form */}
+                {showAddPrompt && (
+                  <AddPromptForm
+                    taskId={task.id}
+                    taskName={task.name}
+                    variantNumber={promptVariants.length + 1}
+                    onSuccess={handlePromptCreated}
+                    onCancel={() => setShowAddPrompt(false)}
+                  />
+                )}
+
+                {/* Prompt list */}
+                {promptVariants.length === 0 ? (
+                  <p className="text-sm text-stone-400 py-4">
+                    No prompt variants yet. Add one to start evaluating.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {promptVariants.map((prompt, idx) => (
+                      <div 
+                        key={prompt.id} 
+                        className="bg-stone-50 p-3 rounded-lg border border-stone-200"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-stone-700">
+                            {prompt.name || `Variant ${idx + 1}`}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-stone-400">v{prompt.version}</span>
+                            {promptVariants.length > 1 && (
+                              <button
+                                onClick={() => handleDeletePrompt(prompt.id)}
+                                className="p-1 hover:bg-stone-200 rounded text-stone-400 hover:text-error-500"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <pre className="text-xs text-stone-600 whitespace-pre-wrap font-mono">
+                          {prompt.template}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Add prompt variant form (inline).
+ */
+function AddPromptForm({ taskId, taskName, variantNumber, onSuccess, onCancel }) {
+  const [template, setTemplate] = useState('You are a helpful assistant.\n\n{{input}}');
+  const [name, setName] = useState(`${taskName} Prompt V${variantNumber}`);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!template.includes('{{input}}')) {
+      setError('Template must contain {{input}} placeholder');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const prompt = await promptsApi.create({
+        name,
+        template,
+        task_id: taskId,
+        version: variantNumber,
+      });
+      onSuccess(prompt);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-4 p-4 bg-accent-50 rounded-lg border border-accent-200">
+      {error && (
+        <p className="text-sm text-error-600 mb-3">{error}</p>
+      )}
+      <div className="mb-3">
+        <label className="text-sm text-stone-600 mb-1 block">Variant Name</label>
+        <input
+          type="text"
+          className="input text-sm"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label className="text-sm text-stone-600 mb-1 block">
+          Template <span className="text-stone-400">(use {'{{input}}'} and {'{{context}}'})</span>
+        </label>
+        <textarea
+          className="input text-sm font-mono"
+          rows={4}
+          value={template}
+          onChange={(e) => setTemplate(e.target.value)}
+          required
+        />
+      </div>
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="btn-ghost text-sm">
+          Cancel
+        </button>
+        <button type="submit" disabled={submitting} className="btn-primary text-sm">
+          {submitting ? 'Adding...' : 'Add Variant'}
+        </button>
+      </div>
+    </form>
   );
 }
 

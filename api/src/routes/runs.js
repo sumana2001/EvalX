@@ -17,7 +17,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { ValidationError, NotFoundError, ConflictError } from '../lib/errors.js';
+import { NotFoundError, ConflictError } from '../lib/errors.js';
+import { validateBody, validateUuid } from '../lib/validation.js';
 import { query, getClient } from '../lib/db.js';
 import { initRunProgress, getRunProgress } from '../lib/redis.js';
 import { sendBatch, TOPICS } from '../lib/kafka.js';
@@ -39,30 +40,6 @@ const createRunSchema = z.object({
     .optional(),  // Optional - will auto-select from task if not provided
   repetitions: z.number().int().min(1).max(100).optional().default(1),
 });
-
-// ============================================================
-// Helper: Validate request body with Zod
-// ============================================================
-function validateBody(schema, body) {
-  const result = schema.safeParse(body);
-  if (!result.success) {
-    const errors = result.error.issues.map((issue) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-    }));
-    throw new ValidationError('Invalid request body', { errors });
-  }
-  return result.data;
-}
-
-// UUID validation helper
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function validateUuid(id, field = 'id') {
-  if (!UUID_REGEX.test(id)) {
-    throw new ValidationError(`Invalid ${field} format`, { [field]: id });
-  }
-}
 
 // ============================================================
 // POST /api/runs - Create a new evaluation run

@@ -123,3 +123,34 @@ export const resultsApi = {
    */
   compareModels: (runId) => request(`/api/results/run/${runId}/compare`),
 };
+
+// ============================================================
+// Prompts API
+// ============================================================
+
+export const promptsApi = {
+  /**
+   * List prompts, optionally filtered by task.
+   */
+  list: (taskId) => request(taskId ? `/api/prompts?task_id=${taskId}` : '/api/prompts'),
+
+  /**
+   * Get a single prompt by ID.
+   */
+  get: (id) => request(`/api/prompts/${id}`),
+
+  /**
+   * Create a new prompt variant.
+   */
+  create: (data) => request('/api/prompts', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  /**
+   * Delete a prompt.
+   */
+  delete: (id) => request(`/api/prompts/${id}`, {
+    method: 'DELETE',
+  }),
+};

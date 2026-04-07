@@ -11,7 +11,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { ValidationError, NotFoundError } from '../lib/errors.js';
+import { NotFoundError } from '../lib/errors.js';
+import { validateBody, validateUuid } from '../lib/validation.js';
 import { query, getClient } from '../lib/db.js';
 
 const router = Router();
@@ -39,25 +40,10 @@ const taskItemSchema = z.object({
 const createTaskSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   description: z.string().optional().nullable(),
-  prompt_template: z.string().min(1, 'Prompt template is required'),
+  prompt_template: z.string().optional().nullable(),  // Optional - can create via separate API
   expected_schema: jsonSchemaSchema,
   items: z.array(taskItemSchema).min(1, 'At least one item is required'),
 });
-
-// ============================================================
-// Helper: Validate request body with Zod
-// ============================================================
-function validateBody(schema, body) {
-  const result = schema.safeParse(body);
-  if (!result.success) {
-    const errors = result.error.issues.map((issue) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-    }));
-    throw new ValidationError('Invalid request body', { errors });
-  }
-  return result.data;
-}
 
 // ============================================================
 // POST /api/tasks - Create task with items
@@ -82,15 +68,17 @@ router.post(
       );
       const task = taskResult.rows[0];
 
-      // 2. Create a prompt variant from the template
-      // Use task name + " Prompt" as the variant name
-      const promptVariantResult = await client.query(
-        `INSERT INTO prompt_variants (name, version, template, task_id)
-         VALUES ($1, 1, $2, $3)
-         RETURNING id, name, template`,
-        [`${data.name} Prompt`, data.prompt_template, task.id]
-      );
-      const promptVariant = promptVariantResult.rows[0];
+      // 2. Optionally create a prompt variant from the template (if provided)
+      let promptVariant = null;
+      if (data.prompt_template) {
+        const promptVariantResult = await client.query(
+          `INSERT INTO prompt_variants (name, version, template, task_id)
+           VALUES ($1, 1, $2, $3)
+           RETURNING id, name, template`,
+          [`${data.name} Prompt`, data.prompt_template, task.id]
+        );
+        promptVariant = promptVariantResult.rows[0];
+      }
 
       // 3. Insert all items (batch insert for performance)
       // Build parameterized query for bulk insert
@@ -121,16 +109,22 @@ router.post(
       await client.query('COMMIT');
 
       // 4. Return response
-      res.status(201).json({
+      const response = {
         id: task.id,
         name: task.name,
         description: task.description,
         expected_schema: task.expected_schema,
-        prompt_template: data.prompt_template,
-        prompt_variant_id: promptVariant.id,
         item_count: itemsResult.rowCount,
         created_at: task.created_at,
-      });
+      };
+      
+      // Include prompt info if created
+      if (promptVariant) {
+        response.prompt_template = data.prompt_template;
+        response.prompt_variant_id = promptVariant.id;
+      }
+      
+      res.status(201).json(response);
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;
@@ -175,12 +169,7 @@ router.get(
   '/:id',
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(id)) {
-      throw new ValidationError('Invalid task ID format', { id });
-    }
+    validateUuid(id, 'task ID');
 
     // Fetch task
     const taskResult = await query(
@@ -229,12 +218,7 @@ router.delete(
   '/:id',
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(id)) {
-      throw new ValidationError('Invalid task ID format', { id });
-    }
+    validateUuid(id, 'task ID');
 
     const result = await query(
       `DELETE FROM evaluation_tasks WHERE id = $1 RETURNING id`,

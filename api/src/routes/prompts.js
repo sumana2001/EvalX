@@ -13,7 +13,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { ValidationError, NotFoundError } from '../lib/errors.js';
+import { NotFoundError } from '../lib/errors.js';
+import { validateBody, validateUuid } from '../lib/validation.js';
 import { query } from '../lib/db.js';
 
 const router = Router();
@@ -33,31 +34,8 @@ const createPromptSchema = z.object({
       'Template must contain {{input}} placeholder'
     ),
   system_prompt: z.string().optional().nullable(),
+  task_id: z.string().uuid('Invalid task_id format').optional().nullable(),
 });
-
-// ============================================================
-// Helper: Validate request body with Zod
-// ============================================================
-function validateBody(schema, body) {
-  const result = schema.safeParse(body);
-  if (!result.success) {
-    const errors = result.error.issues.map((issue) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-    }));
-    throw new ValidationError('Invalid request body', { errors });
-  }
-  return result.data;
-}
-
-// UUID validation helper
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function validateUuid(id, field = 'id') {
-  if (!UUID_REGEX.test(id)) {
-    throw new ValidationError(`Invalid ${field} format`, { [field]: id });
-  }
-}
 
 // ============================================================
 // POST /api/prompts - Create prompt variant
@@ -68,10 +46,10 @@ router.post(
     const data = validateBody(createPromptSchema, req.body);
 
     const result = await query(
-      `INSERT INTO prompt_variants (name, version, template, system_prompt)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, name, version, template, system_prompt, created_at`,
-      [data.name, data.version, data.template, data.system_prompt || null]
+      `INSERT INTO prompt_variants (name, version, template, system_prompt, task_id)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, version, template, system_prompt, task_id, created_at`,
+      [data.name, data.version, data.template, data.system_prompt || null, data.task_id || null]
     );
 
     res.status(201).json(result.rows[0]);
@@ -84,11 +62,23 @@ router.post(
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const result = await query(`
-      SELECT id, name, version, template, system_prompt, created_at
+    // Optional filter by task_id
+    const { task_id } = req.query;
+    
+    let sql = `
+      SELECT id, name, version, template, system_prompt, task_id, created_at
       FROM prompt_variants
-      ORDER BY name ASC, version DESC
-    `);
+    `;
+    const params = [];
+    
+    if (task_id) {
+      sql += ` WHERE task_id = $1`;
+      params.push(task_id);
+    }
+    
+    sql += ` ORDER BY name ASC, version DESC`;
+    
+    const result = await query(sql, params);
 
     res.json({
       prompts: result.rows,
