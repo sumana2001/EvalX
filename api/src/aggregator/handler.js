@@ -69,18 +69,23 @@ async function callEvaluator(result) {
 
     const evaluation = await response.json();
 
+    console.log(`[Aggregator] Evaluator returned: status=${evaluation.status}, metrics=${JSON.stringify(evaluation.metrics)}`);
+
+    // Extract metrics from the nested structure
+    const evalMetrics = evaluation.metrics || {};
+
     // Merge evaluation metrics into result
     return {
       ...result,
       metrics: {
-        schema_valid: evaluation.schema_valid,
-        completeness: evaluation.completeness,
-        context_relevance: evaluation.context_relevance,
-        faithfulness: evaluation.faithfulness,
-        judge_score: evaluation.judge_score,
-        judge_reasoning: evaluation.judge_reasoning,
-        overall_score: evaluation.overall_score,
-        flags: evaluation.flags,
+        schema_valid: evalMetrics.schema_valid ?? null,
+        completeness: evalMetrics.completeness ?? null,
+        context_relevance: evalMetrics.context_relevance ?? null,
+        faithfulness: evalMetrics.faithfulness ?? null,
+        judge_score: evalMetrics.judge_score ?? null,
+        judge_reasoning: evalMetrics.judge_reasoning ?? null,
+        overall_score: evaluation.overall_score ?? null,
+        flags: evaluation.flags ?? null,
       },
     };
   } catch (error) {

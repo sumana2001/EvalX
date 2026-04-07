@@ -28,7 +28,7 @@ export default function RunsPage() {
     loadData();
   }, []);
 
-  // Listen for global run status changes
+  // Listen for global run status changes and progress updates
   useEffect(() => {
     const socket = connectSocket();
     
@@ -51,10 +51,27 @@ export default function RunsPage() {
       }
     };
 
+    // Global progress updates (doesn't require room subscription)
+    const handleProgressUpdate = (data) => {
+      console.log('[RunsPage] Progress update:', data);
+      setRuns(prevRuns => prevRuns.map(r => {
+        if (r.id === data.runId) {
+          return {
+            ...r,
+            completed_jobs: data.completed,
+            failed_jobs: data.failed,
+          };
+        }
+        return r;
+      }));
+    };
+
     socket.on('runs:statusChanged', handleStatusChanged);
+    socket.on('run:progressUpdate', handleProgressUpdate);
 
     return () => {
       socket.off('runs:statusChanged', handleStatusChanged);
+      socket.off('run:progressUpdate', handleProgressUpdate);
     };
   }, []);
 

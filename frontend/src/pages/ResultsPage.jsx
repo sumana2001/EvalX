@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import {
   BarChart,
@@ -452,10 +452,11 @@ function SuccessRateChart({ results }) {
 }
 
 /**
- * Detailed results table.
+ * Detailed results table with expandable rows.
  */
 function ResultsTable({ results }) {
   const { items } = results;
+  const [expandedRow, setExpandedRow] = useState(null);
   
   if (!items || items.length === 0) {
     return null;
@@ -465,6 +466,7 @@ function ResultsTable({ results }) {
     <div className="card overflow-hidden">
       <div className="p-4 border-b border-stone-100">
         <h3 className="font-medium text-stone-900">Detailed Results</h3>
+        <p className="text-sm text-stone-500 mt-1">Click a row to see the full output</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -479,33 +481,78 @@ function ResultsTable({ results }) {
           </thead>
           <tbody className="divide-y divide-stone-100">
             {items.slice(0, 20).map((item, i) => (
-              <tr key={i} className="hover:bg-stone-50">
-                <td className="px-4 py-3 text-stone-900 max-w-xs truncate">
-                  {item.input?.slice(0, 50) || 'N/A'}...
-                </td>
-                <td className="px-4 py-3 text-stone-600">
-                  {item.model?.split('/').pop() || 'N/A'}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`font-medium ${
-                    item.score >= 0.7 ? 'text-success-600' :
-                    item.score >= 0.5 ? 'text-warning-600' :
-                    'text-error-600'
-                  }`}>
-                    {(item.score * 10).toFixed(1)}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-center text-stone-600">
-                  {item.latencyMs} ms
-                </td>
-                <td className="px-4 py-3 text-center">
-                  {item.passed ? (
-                    <span className="badge badge-success">Pass</span>
-                  ) : (
-                    <span className="badge badge-error">Fail</span>
-                  )}
-                </td>
-              </tr>
+              <React.Fragment key={i}>
+                <tr 
+                  className="hover:bg-stone-50 cursor-pointer"
+                  onClick={() => setExpandedRow(expandedRow === i ? null : i)}
+                >
+                  <td className="px-4 py-3 text-stone-900 max-w-xs truncate">
+                    {item.input?.slice(0, 50) || 'N/A'}{item.input?.length > 50 ? '...' : ''}
+                  </td>
+                  <td className="px-4 py-3 text-stone-600">
+                    {item.model?.split('/').pop() || 'N/A'}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-medium ${
+                      item.score >= 0.7 ? 'text-success-600' :
+                      item.score >= 0.5 ? 'text-warning-600' :
+                      'text-error-600'
+                    }`}>
+                      {item.score ? (item.score * 10).toFixed(1) : '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center text-stone-600">
+                    {item.latencyMs || '—'} ms
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {item.passed ? (
+                      <span className="badge badge-success">Pass</span>
+                    ) : (
+                      <span className="badge badge-error">Fail</span>
+                    )}
+                  </td>
+                </tr>
+                {expandedRow === i && (
+                  <tr className="bg-stone-50">
+                    <td colSpan={5} className="px-4 py-4">
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-xs font-medium text-stone-500 uppercase">Full Input</span>
+                          <p className="mt-1 text-stone-700 whitespace-pre-wrap">{item.input || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-stone-500 uppercase">Model Output</span>
+                          <pre className="mt-1 text-stone-700 whitespace-pre-wrap bg-white p-3 rounded border border-stone-200 text-sm overflow-x-auto">
+                            {item.raw_output || 'No output available'}
+                          </pre>
+                        </div>
+                        {(item.completeness != null || item.faithfulness != null) && (
+                          <div className="flex gap-6">
+                            {item.completeness != null && (
+                              <div>
+                                <span className="text-xs font-medium text-stone-500">Completeness</span>
+                                <p className="text-stone-700">{(item.completeness * 100).toFixed(0)}%</p>
+                              </div>
+                            )}
+                            {item.faithfulness != null && (
+                              <div>
+                                <span className="text-xs font-medium text-stone-500">Faithfulness</span>
+                                <p className="text-stone-700">{(item.faithfulness * 100).toFixed(0)}%</p>
+                              </div>
+                            )}
+                            {item.contextRelevance != null && (
+                              <div>
+                                <span className="text-xs font-medium text-stone-500">Context Relevance</span>
+                                <p className="text-stone-700">{(item.contextRelevance * 100).toFixed(0)}%</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

@@ -88,14 +88,25 @@ export function getIO() {
  * @param {Object} progress - Progress data
  */
 export function emitRunProgress(runId, progress) {
-  if (!io) return;
+  if (!io) {
+    console.warn('[Socket.io] Cannot emit run:progress - io not initialized');
+    return;
+  }
   
   const room = `run:${runId}`;
-  io.to(room).emit('run:progress', {
+  const payload = {
     runId,
     ...progress,
     timestamp: Date.now(),
-  });
+  };
+
+  // Emit to specific room (clients subscribed to this run)
+  io.to(room).emit('run:progress', payload);
+  
+  // Also broadcast globally so RunsPage can update without subscription  
+  io.emit('run:progressUpdate', payload);
+
+  console.log(`[Socket.io] Emitted progress for ${runId}: ${progress.completed + progress.failed}/${progress.total}`);
 }
 
 /**
