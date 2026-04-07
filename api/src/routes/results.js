@@ -37,18 +37,37 @@ router.get(
     const run = runResult.rows[0];
 
     // Get summary statistics
-    const summaryResult = await query(`
+    // Results in execution_results = successful, evaluation_failures = failed
+    const successResult = await query(`
       SELECT 
         COUNT(*)::int as total,
-        COUNT(CASE WHEN schema_valid = true THEN 1 END)::int as passed,
-        COUNT(CASE WHEN schema_valid = false OR schema_valid IS NULL THEN 1 END)::int as failed,
-        AVG(judge_score)::float / 10 as "avgScore",
+        AVG(judge_score)::float as "avgJudgeScore",
         AVG(latency_ms)::float as "avgLatencyMs",
         AVG(completeness)::float as "avgCompleteness",
         AVG(faithfulness)::float as "avgFaithfulness"
       FROM execution_results
       WHERE run_id = $1
     `, [runId]);
+
+    const failedResult = await query(`
+      SELECT COUNT(*)::int as total FROM evaluation_failures WHERE run_id = $1
+    `, [runId]);
+
+    const successCount = successResult.rows[0]?.total || 0;
+    const failedCount = failedResult.rows[0]?.total || 0;
+    const avgJudgeScore = successResult.rows[0]?.avgJudgeScore;
+
+    const summaryResult = {
+      rows: [{
+        total: successCount + failedCount,
+        passed: successCount,
+        failed: failedCount,
+        avgScore: avgJudgeScore ? avgJudgeScore / 10 : 0,
+        avgLatencyMs: successResult.rows[0]?.avgLatencyMs || 0,
+        avgCompleteness: successResult.rows[0]?.avgCompleteness || 0,
+        avgFaithfulness: successResult.rows[0]?.avgFaithfulness || 0,
+      }]
+    };
 
     const summary = summaryResult.rows[0] || {
       total: 0,
@@ -69,8 +88,8 @@ router.get(
         AVG(faithfulness)::float as "avgFaithfulness",
         AVG(context_relevance)::float as "avgContextRelevance",
         PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY latency_ms)::float as "p95LatencyMs",
-        COUNT(CASE WHEN schema_valid = true THEN 1 END)::int as passed,
-        COUNT(CASE WHEN schema_valid = false THEN 1 END)::int as failed
+        COUNT(*)::int as passed,
+        0::int as failed
       FROM execution_results
       WHERE run_id = $1
       GROUP BY model
@@ -78,12 +97,13 @@ router.get(
     `, [runId]);
 
     // Get individual result items (limited)
+    // All items in execution_results are successful executions
     const itemsResult = await query(`
       SELECT 
         er.id,
         er.model,
         er.raw_output,
-        er.schema_valid as passed,
+        true as passed,
         er.judge_score as score,
         er.latency_ms as "latencyMs",
         er.completeness,

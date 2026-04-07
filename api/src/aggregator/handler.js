@@ -161,14 +161,14 @@ async function handleRunComplete(runId, progress) {
   // Determine final status based on failures
   const finalStatus = progress.failed === progress.total ? 'failed' : 'completed';
 
-  // Update run status in database
+  // Update run status and final job counts in database
   const updateSql = `
     UPDATE evaluation_runs
-    SET status = $1, completed_at = NOW()
+    SET status = $1, completed_at = NOW(), completed_jobs = $3, failed_jobs = $4
     WHERE id = $2
   `;
   
-  await query(updateSql, [finalStatus, runId]);
+  await query(updateSql, [finalStatus, runId, progress.completed, progress.failed]);
   console.log(`[Aggregator] Run ${runId} status updated to: ${finalStatus}`);
 
   // Calculate duration

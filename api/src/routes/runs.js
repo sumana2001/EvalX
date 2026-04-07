@@ -426,6 +426,9 @@ router.post(
       [id]
     );
 
+    // 5b. Initialize/reset Redis progress counters for real-time tracking
+    await initRunProgress(id, run.total_jobs);
+
     // 6. Send all jobs to Kafka in batches (to avoid memory issues)
     const BATCH_SIZE = 1000;
     let sentCount = 0;
