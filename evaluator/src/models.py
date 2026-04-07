@@ -6,7 +6,7 @@ These define the structure for:
 - Evaluation responses (the 5 pillars + failure classification)
 """
 
-from typing import Any, Optional
+from typing import Any, Optional, Dict, List
 from pydantic import BaseModel, Field
 from enum import Enum
 
@@ -42,29 +42,29 @@ class EvaluationRequest(BaseModel):
     Contains everything needed to score the response.
     """
     # Job identification
-    job_id: str
-    run_id: str
-    task_item_id: str
-    prompt_variant_id: str
-    model: str
+    job_id: str = "unknown"
+    run_id: str = "unknown"
+    task_item_id: str = "unknown"
+    prompt_variant_id: str = "unknown"
+    model: str = "unknown"
     repetition_index: int = 1
 
     # The LLM's raw output to evaluate
     raw_output: str
 
-    # Context needed for evaluation
-    expected_schema: dict[str, Any] | None = None
-    ground_truth: str | None = None
-    context: str | None = None
-    input: str | None = None
+    # Context needed for evaluation (all optional)
+    expected_schema: Optional[Dict[str, Any]] = None
+    ground_truth: Optional[str] = None
+    context: Optional[str] = None
+    input: Optional[str] = None
 
-    # Performance metrics (passed through)
-    latency_ms: int
+    # Performance metrics (optional - passed through for logging)
+    latency_ms: Optional[int] = None
     prompt_tokens: int = 0
     completion_tokens: int = 0
     total_tokens: int = 0
-    estimated_cost_usd: float | None = None
-    provider: str
+    estimated_cost_usd: Optional[float] = None
+    provider: Optional[str] = None
 
     class Config:
         json_schema_extra = {
@@ -110,23 +110,23 @@ class EvaluationMetrics(BaseModel):
     )
 
     # Pillar 3: Context Relevance
-    context_relevance: float | None = Field(
+    context_relevance: Optional[float] = Field(
         default=None, ge=0, le=1,
         description="Cosine similarity between input and context (0-1)"
     )
 
     # Pillar 4: RAG Faithfulness
-    faithfulness: float | None = Field(
+    faithfulness: Optional[float] = Field(
         default=None, ge=0, le=1,
         description="How grounded the answer is in the context (0-1)"
     )
 
     # Pillar 5: LLM-as-a-Judge
-    judge_score: int | None = Field(
+    judge_score: Optional[int] = Field(
         default=None, ge=1, le=10,
         description="LLM judge score for correctness/clarity (1-10)"
     )
-    judge_reasoning: str | None = Field(
+    judge_reasoning: Optional[str] = Field(
         default=None,
         description="Explanation from the judge model"
     )
@@ -149,18 +149,18 @@ class EvaluationResponse(BaseModel):
     status: EvaluationStatus
 
     # The 5 pillars (null on failure)
-    metrics: EvaluationMetrics | None = None
+    metrics: Optional[EvaluationMetrics] = None
 
     # Failure info (null on success)
-    failure_type: FailureType | None = None
-    failure_reason: str | None = None
+    failure_type: Optional[FailureType] = None
+    failure_reason: Optional[str] = None
 
     # Pass-through performance data
-    latency_ms: int
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
-    estimated_cost_usd: float | None
+    latency_ms: Optional[int] = None
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    estimated_cost_usd: Optional[float] = None
 
     # Raw output (for debugging)
     raw_output: str
@@ -201,5 +201,5 @@ class HealthResponse(BaseModel):
     """Health check response."""
     status: str
     service: str
-    embedding_model: str | None = None
+    embedding_model: Optional[str] = None
     judge_available: bool = False

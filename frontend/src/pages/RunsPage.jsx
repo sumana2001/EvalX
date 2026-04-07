@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Play, CheckCircle, XCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { runsApi, tasksApi } from '../lib/api';
 import { useMultiRunProgress } from '../hooks/useRunProgress';
+import { connectSocket } from '../lib/socket';
 
 /**
  * Runs Page - Create and monitor evaluation runs with real-time progress.
@@ -23,6 +24,25 @@ export default function RunsPage() {
   // Fetch runs and tasks on mount
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Listen for global run status changes
+  useEffect(() => {
+    const socket = connectSocket();
+    
+    const handleStatusChanged = (data) => {
+      console.log('[RunsPage] Run status changed:', data);
+      // Update the run status locally
+      setRuns(prevRuns => prevRuns.map(r => 
+        r.id === data.runId ? { ...r, status: data.status } : r
+      ));
+    };
+
+    socket.on('runs:statusChanged', handleStatusChanged);
+
+    return () => {
+      socket.off('runs:statusChanged', handleStatusChanged);
+    };
   }, []);
 
   async function loadData() {

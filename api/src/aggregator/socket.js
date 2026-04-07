@@ -124,10 +124,18 @@ export function emitRunStarted(runId, data) {
 export function emitRunComplete(runId, summary) {
   if (!io) return;
   
+  // Emit to specific run room
   const room = `run:${runId}`;
   io.to(room).emit('run:complete', {
     runId,
     ...summary,
+    timestamp: Date.now(),
+  });
+
+  // Also broadcast globally so Runs list can update
+  io.emit('runs:statusChanged', {
+    runId,
+    status: summary.status,
     timestamp: Date.now(),
   });
 }
