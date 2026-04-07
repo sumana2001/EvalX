@@ -36,7 +36,7 @@ const createRunSchema = z.object({
     .min(1, 'At least one model is required'),
   prompt_variant_ids: z
     .array(z.string().uuid('Invalid prompt variant ID'))
-    .min(1, 'At least one prompt variant is required'),
+    .optional(),  // Optional - will auto-select from task if not provided
   repetitions: z.number().int().min(1).max(100).optional().default(1),
 });
 
@@ -95,22 +95,42 @@ router.post(
         throw new ValidationError('Task has no items', { task_id: data.task_id });
       }
 
-      // 2. Verify all prompt variants exist
-      const promptResult = await client.query(
-        `SELECT id FROM prompt_variants WHERE id = ANY($1)`,
-        [data.prompt_variant_ids]
-      );
+      // 2. Get prompt variant IDs - either from request or auto-fetch from task
+      let promptVariantIds = data.prompt_variant_ids;
+      
+      if (!promptVariantIds || promptVariantIds.length === 0) {
+        // Auto-fetch prompt variants linked to this task
+        const taskPromptsResult = await client.query(
+          `SELECT id FROM prompt_variants WHERE task_id = $1`,
+          [data.task_id]
+        );
+        
+        if (taskPromptsResult.rowCount === 0) {
+          throw new ValidationError(
+            'No prompt variants found for this task. Create the task with a prompt template first.',
+            { task_id: data.task_id }
+          );
+        }
+        
+        promptVariantIds = taskPromptsResult.rows.map(r => r.id);
+      } else {
+        // Verify all provided prompt variants exist
+        const promptResult = await client.query(
+          `SELECT id FROM prompt_variants WHERE id = ANY($1)`,
+          [promptVariantIds]
+        );
 
-      if (promptResult.rowCount !== data.prompt_variant_ids.length) {
-        const foundIds = new Set(promptResult.rows.map((r) => r.id));
-        const missingIds = data.prompt_variant_ids.filter((id) => !foundIds.has(id));
-        throw new NotFoundError('Prompt variants', missingIds.join(', '));
+        if (promptResult.rowCount !== promptVariantIds.length) {
+          const foundIds = new Set(promptResult.rows.map((r) => r.id));
+          const missingIds = promptVariantIds.filter((id) => !foundIds.has(id));
+          throw new NotFoundError('Prompt variants', missingIds.join(', '));
+        }
       }
 
       // 3. Calculate total jobs (the fan-out)
       const totalJobs =
         itemCount *
-        data.prompt_variant_ids.length *
+        promptVariantIds.length *
         data.models.length *
         data.repetitions;
 
@@ -133,14 +153,14 @@ router.post(
       const run = runResult.rows[0];
 
       // 5. Link run to prompt variants (junction table)
-      const junctionValues = data.prompt_variant_ids
+      const junctionValues = promptVariantIds
         .map((_, i) => `($1, $${i + 2})`)
         .join(', ');
 
       await client.query(
         `INSERT INTO run_prompt_variants (run_id, prompt_variant_id)
          VALUES ${junctionValues}`,
-        [run.id, ...data.prompt_variant_ids]
+        [run.id, ...promptVariantIds]
       );
 
       // 6. Initialize Redis progress counters

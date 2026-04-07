@@ -39,6 +39,7 @@ const taskItemSchema = z.object({
 const createTaskSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   description: z.string().optional().nullable(),
+  prompt_template: z.string().min(1, 'Prompt template is required'),
   expected_schema: jsonSchemaSchema,
   items: z.array(taskItemSchema).min(1, 'At least one item is required'),
 });
@@ -81,7 +82,17 @@ router.post(
       );
       const task = taskResult.rows[0];
 
-      // 2. Insert all items (batch insert for performance)
+      // 2. Create a prompt variant from the template
+      // Use task name + " Prompt" as the variant name
+      const promptVariantResult = await client.query(
+        `INSERT INTO prompt_variants (name, version, template, task_id)
+         VALUES ($1, 1, $2, $3)
+         RETURNING id, name, template`,
+        [`${data.name} Prompt`, data.prompt_template, task.id]
+      );
+      const promptVariant = promptVariantResult.rows[0];
+
+      // 3. Insert all items (batch insert for performance)
       // Build parameterized query for bulk insert
       const itemValues = [];
       const itemParams = [];
@@ -109,12 +120,14 @@ router.post(
 
       await client.query('COMMIT');
 
-      // 3. Return response
+      // 4. Return response
       res.status(201).json({
         id: task.id,
         name: task.name,
         description: task.description,
         expected_schema: task.expected_schema,
+        prompt_template: data.prompt_template,
+        prompt_variant_id: promptVariant.id,
         item_count: itemsResult.rowCount,
         created_at: task.created_at,
       });
@@ -140,7 +153,8 @@ router.get(
         t.description,
         t.created_at,
         t.updated_at,
-        COUNT(ti.id)::int as item_count
+        COUNT(DISTINCT ti.id)::int as item_count,
+        (SELECT template FROM prompt_variants WHERE task_id = t.id LIMIT 1) as prompt_template
       FROM evaluation_tasks t
       LEFT JOIN evaluation_task_items ti ON ti.task_id = t.id
       GROUP BY t.id
@@ -190,10 +204,20 @@ router.get(
       [id]
     );
 
+    // Fetch prompt variants for this task
+    const promptsResult = await query(
+      `SELECT id, name, template, version, created_at
+       FROM prompt_variants
+       WHERE task_id = $1
+       ORDER BY version ASC`,
+      [id]
+    );
+
     res.json({
       ...task,
       items: itemsResult.rows,
       item_count: itemsResult.rowCount,
+      prompt_variants: promptsResult.rows,
     });
   })
 );
