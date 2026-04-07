@@ -37,13 +37,22 @@ async function callEvaluator(result) {
     return result;
   }
 
+  // Build payload matching EvaluationRequest model
   const evaluatorPayload = {
-    raw_output: result.raw_output,
-    expected_schema: result.expected_schema || {},
+    job_id: result.job_id || 'unknown',
+    run_id: result.run_id || 'unknown',
+    task_item_id: result.task_item_id || 'unknown',
+    prompt_variant_id: result.prompt_variant_id || 'unknown',
+    model: result.model || 'unknown',
+    repetition_index: result.repetition_index || 1,
+    raw_output: result.raw_output || '',
+    expected_schema: result.expected_schema || null,
     ground_truth: result.ground_truth || null,
     context: result.context || null,
     input: result.input || null,
   };
+
+  console.log(`[Aggregator] Calling evaluator with payload for job ${result.job_id}`);
 
   try {
     const response = await fetch(`${EVALUATOR_URL}/evaluate`, {
@@ -54,6 +63,7 @@ async function callEvaluator(result) {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`[Aggregator] Evaluator response: ${response.status} - ${errorText}`);
       throw new Error(`Evaluator HTTP ${response.status}: ${errorText}`);
     }
 
@@ -76,7 +86,7 @@ async function callEvaluator(result) {
   } catch (error) {
     console.error(`[Aggregator] Evaluator call failed:`, error.message);
     
-    // Mark as evaluation failure but don't crash
+    // Mark as evaluation failure but don't crash - still count as failed
     return {
       ...result,
       status: 'failed',
@@ -96,15 +106,32 @@ export async function handleResult(result) {
   
   console.log(`[Aggregator] Processing ${job_id} (${status})`);
 
+  let evaluatedResult;
+
   try {
     // 1. Call evaluator to score the output (for successful LLM calls)
-    const evaluatedResult = await callEvaluator(result);
+    evaluatedResult = await callEvaluator(result);
     console.log(`[Aggregator] Evaluated: ${evaluatedResult.status}${evaluatedResult.metrics ? `, score: ${evaluatedResult.metrics.overall_score?.toFixed(2)}` : ''}`);
+  } catch (error) {
+    console.error(`[Aggregator] Evaluator error for ${job_id}:`, error.message);
+    evaluatedResult = {
+      ...result,
+      status: 'failed',
+      failure_type: 'EVALUATOR_ERROR',
+      error_message: error.message,
+    };
+  }
 
+  try {
     // 2. Persist to database
     const persistence = await persistResult(evaluatedResult);
     console.log(`[Aggregator] Persisted to ${persistence.table}: ${persistence.id}`);
+  } catch (error) {
+    console.error(`[Aggregator] Persistence error for ${job_id}:`, error.message);
+    // Continue anyway - we need to update progress even if persistence fails
+  }
 
+  try {
     // 3. Update Redis progress (use evaluated status)
     const progress = await updateProgress(run_id, evaluatedResult.status === 'success');
     console.log(`[Aggregator] Progress: ${progress.completed + progress.failed}/${progress.total} (${progress.percentComplete}%)`);
@@ -116,10 +143,9 @@ export async function handleResult(result) {
     if (progress.isComplete) {
       await handleRunComplete(run_id, progress);
     }
-
   } catch (error) {
-    console.error(`[Aggregator] Error processing ${job_id}:`, error.message);
-    throw error; // Re-throw to prevent Kafka commit
+    console.error(`[Aggregator] Progress/Socket error for ${job_id}:`, error.message);
+    // Don't re-throw - the result was processed, just tracking failed
   }
 }
 

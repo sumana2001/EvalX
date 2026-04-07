@@ -56,7 +56,7 @@ class EvaluationRequest(BaseModel):
     expected_schema: dict[str, Any] | None = None
     ground_truth: str | None = None
     context: str | None = None
-    input: str
+    input: str | None = None
 
     # Performance metrics (passed through)
     latency_ms: int
