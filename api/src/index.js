@@ -31,6 +31,7 @@ import tasksRouter from './routes/tasks.js';
 import promptsRouter from './routes/prompts.js';
 import runsRouter from './routes/runs.js';
 import resultsRouter from './routes/results.js';
+import statsRouter from './routes/stats.js';
 
 dotenv.config();
 validateConfig();
@@ -114,6 +115,7 @@ app.use('/api/tasks', tasksRouter);
 app.use('/api/prompts', promptsRouter);
 app.use('/api/runs', runsRouter);
 app.use('/api/results', resultsRouter);
+app.use('/api/stats', statsRouter);
 
 // ============================================================
 // Error Handling (MUST be last)

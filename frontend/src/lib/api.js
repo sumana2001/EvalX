@@ -154,3 +154,14 @@ export const promptsApi = {
     method: 'DELETE',
   }),
 };
+
+// ============================================================
+// Stats API
+// ============================================================
+
+export const statsApi = {
+  /**
+   * Get dashboard statistics.
+   */
+  dashboard: () => request('/api/stats/dashboard'),
+};
