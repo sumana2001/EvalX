@@ -133,14 +133,14 @@ router.get(
         ef.failure_type as "failureType",
         ef.error_message as "errorMessage",
         ef.raw_output,
-        ef.failed_at as "failedAt",
+        ef.created_at as "failedAt",
         ti.input,
         pv.name as "promptName"
       FROM evaluation_failures ef
       LEFT JOIN evaluation_task_items ti ON ef.task_item_id = ti.id
       LEFT JOIN prompt_variants pv ON ef.prompt_variant_id = pv.id
       WHERE ef.run_id = $1
-      ORDER BY ef.failed_at DESC
+      ORDER BY ef.created_at DESC
       LIMIT 100
     `, [runId]);
 
