@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { BarChart3, Play, Settings, Database, TrendingUp, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { BarChart3, Play, Settings, Database, TrendingUp, Clock, CheckCircle, XCircle, Loader2, Moon, Sun } from 'lucide-react';
 import TasksPage from './pages/TasksPage';
 import RunsPage from './pages/RunsPage';
 import ResultsPage from './pages/ResultsPage';
@@ -220,8 +220,8 @@ function NavItem({ to, icon: Icon, children }) {
       className={({ isActive }) =>
         `flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors duration-150 ${
           isActive
-            ? 'bg-accent-100 text-accent-700 font-medium'
-            : 'text-stone-600 hover:bg-stone-100'
+            ? 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400 font-medium'
+            : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700'
         }`
       }
     >
@@ -232,16 +232,43 @@ function NavItem({ to, icon: Icon, children }) {
 }
 
 function App() {
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check localStorage and system preference
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('evalx-dark-mode');
+      if (saved !== null) return saved === 'true';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    // Apply dark mode class to document
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('evalx-dark-mode', darkMode);
+  }, [darkMode]);
+
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex">
+      <div className="min-h-screen flex bg-stone-50 dark:bg-stone-900">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-stone-200 flex flex-col">
+        <aside className="w-64 bg-white dark:bg-stone-800 border-r border-stone-200 dark:border-stone-700 flex flex-col">
           {/* Logo */}
-          <div className="h-16 flex items-center px-6 border-b border-stone-200">
-            <h1 className="text-xl font-semibold text-stone-900">
+          <div className="h-16 flex items-center justify-between px-6 border-b border-stone-200 dark:border-stone-700">
+            <h1 className="text-xl font-semibold text-stone-900 dark:text-stone-100">
               Eval<span className="text-accent-600">X</span>
             </h1>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
           </div>
           
           {/* Navigation */}
@@ -253,13 +280,13 @@ function App() {
           </nav>
           
           {/* Footer */}
-          <div className="p-4 border-t border-stone-200">
+          <div className="p-4 border-t border-stone-200 dark:border-stone-700">
             <p className="text-xs text-stone-400">EvalX v1.0.0</p>
           </div>
         </aside>
         
         {/* Main content */}
-        <main className="flex-1 bg-stone-50">
+        <main className="flex-1 bg-stone-50 dark:bg-stone-900">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/tasks" element={<TasksPage />} />

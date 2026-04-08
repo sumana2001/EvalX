@@ -87,12 +87,11 @@ export async function insertEvaluationFailure(result) {
       failure_type,
       error_message,
       raw_output,
-      retry_count,
-      failed_at
+      retry_count
     ) VALUES (
-      $1, $2, $3, $4, $5, $6::failure_type, $7, $8, $9, NOW()
+      $1, $2, $3, $4, $5, $6::failure_type, $7, $8, $9
     )
-    RETURNING id, failed_at
+    RETURNING id, created_at
   `;
 
   const params = [

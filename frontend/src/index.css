@@ -34,6 +34,21 @@
     --warning: 38 92% 50%;
   }
 
+  .dark {
+    /* Dark mode - rich, warm dark */
+    --background: 24 10% 10%;
+    --foreground: 30 20% 90%;
+    
+    --card: 24 10% 14%;
+    --card-foreground: 30 20% 90%;
+    
+    --muted: 24 10% 20%;
+    --muted-foreground: 24 5% 65%;
+    
+    --border: 24 10% 25%;
+    --input: 24 10% 20%;
+  }
+
   * {
     border-color: hsl(var(--border));
   }
@@ -53,6 +68,9 @@
   .card {
     @apply bg-white rounded-xl border border-stone-200 shadow-soft;
   }
+  .dark .card {
+    @apply bg-stone-800 border-stone-700;
+  }
 
   /* Primary button - warm accent */
   .btn-primary {
@@ -67,11 +85,17 @@
     @apply px-4 py-2 rounded-lg transition-colors duration-150;
     @apply border border-stone-200;
   }
+  .dark .btn-secondary {
+    @apply bg-stone-700 hover:bg-stone-600 text-stone-200 border-stone-600;
+  }
 
   /* Ghost button */
   .btn-ghost {
     @apply hover:bg-stone-100 text-stone-600 font-medium;
     @apply px-4 py-2 rounded-lg transition-colors duration-150;
+  }
+  .dark .btn-ghost {
+    @apply hover:bg-stone-700 text-stone-300;
   }
 
   /* Input fields */
@@ -81,10 +105,16 @@
     @apply focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent;
     @apply transition-shadow duration-150;
   }
+  .dark .input {
+    @apply bg-stone-800 border-stone-600 text-stone-100 placeholder:text-stone-500;
+  }
 
   /* Labels */
   .label {
     @apply text-sm font-medium text-stone-700 mb-1.5 block;
+  }
+  .dark .label {
+    @apply text-stone-300;
   }
 
   /* Status badges */
@@ -95,17 +125,29 @@
   .badge-success {
     @apply bg-success-100 text-success-700;
   }
+  .dark .badge-success {
+    @apply bg-success-900/30 text-success-400;
+  }
 
   .badge-error {
     @apply bg-error-100 text-error-700;
+  }
+  .dark .badge-error {
+    @apply bg-error-900/30 text-error-400;
   }
 
   .badge-warning {
     @apply bg-warning-100 text-warning-600;
   }
+  .dark .badge-warning {
+    @apply bg-warning-900/30 text-warning-400;
+  }
 
   .badge-neutral {
     @apply bg-stone-100 text-stone-600;
+  }
+  .dark .badge-neutral {
+    @apply bg-stone-700 text-stone-300;
   }
 }
 
@@ -118,12 +160,21 @@
 ::-webkit-scrollbar-track {
   background: hsl(30 10% 94%);
 }
+.dark ::-webkit-scrollbar-track {
+  background: hsl(24 10% 15%);
+}
 
 ::-webkit-scrollbar-thumb {
   background: hsl(30 5% 75%);
   border-radius: 4px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(24 5% 40%);
+}
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(30 5% 60%);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(24 5% 50%);
 }

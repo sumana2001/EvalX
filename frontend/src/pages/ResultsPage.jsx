@@ -49,6 +49,7 @@ export default function ResultsPage() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modelFilter, setModelFilter] = useState('all');
 
   // Fetch completed runs on mount
   useEffect(() => {
@@ -86,6 +87,7 @@ export default function ResultsPage() {
   async function loadResults(runId) {
     try {
       setLoading(true);
+      setModelFilter('all'); // Reset filter when changing runs
       const data = await resultsApi.getByRun(runId);
       setResults(data);
     } catch (err) {
@@ -174,11 +176,28 @@ export default function ResultsPage() {
             <SuccessRateChart results={results} />
           </div>
 
+          {/* Model filter for detailed tables */}
+          {results.byModel && results.byModel.length > 1 && (
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-stone-600 dark:text-stone-400">Filter by model:</label>
+              <select
+                className="input w-64"
+                value={modelFilter}
+                onChange={(e) => setModelFilter(e.target.value)}
+              >
+                <option value="all">All Models</option>
+                {results.byModel.map(m => (
+                  <option key={m.model} value={m.model}>{m.model}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Detailed results table */}
-          <ResultsTable results={results} />
+          <ResultsTable results={results} modelFilter={modelFilter} />
 
           {/* Failures table */}
-          <FailuresTable results={results} />
+          <FailuresTable results={results} modelFilter={modelFilter} />
         </div>
       )}
     </div>
@@ -457,33 +476,41 @@ function SuccessRateChart({ results }) {
 /**
  * Detailed results table with expandable rows.
  */
-function ResultsTable({ results }) {
+function ResultsTable({ results, modelFilter = 'all' }) {
   const { items } = results;
   const [expandedRow, setExpandedRow] = useState(null);
   
-  if (!items || items.length === 0) {
+  // Filter items by model
+  const filteredItems = modelFilter === 'all' 
+    ? items 
+    : items?.filter(item => item.model === modelFilter);
+  
+  if (!filteredItems || filteredItems.length === 0) {
     return null;
   }
 
   return (
     <div className="card overflow-hidden">
-      <div className="p-4 border-b border-stone-100">
-        <h3 className="font-medium text-stone-900">Detailed Results</h3>
-        <p className="text-sm text-stone-500 mt-1">Click a row to see the full output</p>
+      <div className="p-4 border-b border-stone-100 dark:border-stone-700">
+        <h3 className="font-medium text-stone-900 dark:text-stone-100">Detailed Results</h3>
+        <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+          Click a row to see the full output
+          {modelFilter !== 'all' && ` • Filtered by: ${modelFilter}`}
+        </p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-stone-50">
+          <thead className="bg-stone-50 dark:bg-stone-800">
             <tr>
-              <th className="px-4 py-3 text-left text-stone-600 font-medium">Input</th>
-              <th className="px-4 py-3 text-left text-stone-600 font-medium">Model</th>
-              <th className="px-4 py-3 text-center text-stone-600 font-medium">Score</th>
-              <th className="px-4 py-3 text-center text-stone-600 font-medium">Latency</th>
-              <th className="px-4 py-3 text-center text-stone-600 font-medium">Status</th>
+              <th className="px-4 py-3 text-left text-stone-600 dark:text-stone-300 font-medium">Input</th>
+              <th className="px-4 py-3 text-left text-stone-600 dark:text-stone-300 font-medium">Model</th>
+              <th className="px-4 py-3 text-center text-stone-600 dark:text-stone-300 font-medium">Score</th>
+              <th className="px-4 py-3 text-center text-stone-600 dark:text-stone-300 font-medium">Latency</th>
+              <th className="px-4 py-3 text-center text-stone-600 dark:text-stone-300 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
-            {items.slice(0, 20).map((item, i) => (
+          <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
+            {filteredItems.slice(0, 20).map((item, i) => (
               <React.Fragment key={i}>
                 <tr 
                   className="hover:bg-stone-50 cursor-pointer"
@@ -626,42 +653,50 @@ function PromptComparisonChart({ results }) {
 /**
  * Failures table - shows failed executions with error messages.
  */
-function FailuresTable({ results }) {
+function FailuresTable({ results, modelFilter = 'all' }) {
   const { failures } = results;
   
-  if (!failures || failures.length === 0) {
+  // Filter failures by model
+  const filteredFailures = modelFilter === 'all'
+    ? failures
+    : failures?.filter(f => f.model === modelFilter);
+  
+  if (!filteredFailures || filteredFailures.length === 0) {
     return null;
   }
 
   return (
     <div className="card overflow-hidden">
-      <div className="p-4 border-b border-stone-100">
-        <h3 className="font-medium text-stone-900">Failed Executions</h3>
-        <p className="text-sm text-stone-500 mt-1">{failures.length} failures</p>
+      <div className="p-4 border-b border-stone-100 dark:border-stone-700">
+        <h3 className="font-medium text-stone-900 dark:text-stone-100">Failed Executions</h3>
+        <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+          {filteredFailures.length} failures
+          {modelFilter !== 'all' && ` • Filtered by: ${modelFilter}`}
+        </p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-stone-50">
+          <thead className="bg-stone-50 dark:bg-stone-800">
             <tr>
-              <th className="px-4 py-3 text-left text-stone-600 font-medium">Input</th>
-              <th className="px-4 py-3 text-left text-stone-600 font-medium">Model</th>
-              <th className="px-4 py-3 text-left text-stone-600 font-medium">Failure Type</th>
-              <th className="px-4 py-3 text-left text-stone-600 font-medium">Error Message</th>
+              <th className="px-4 py-3 text-left text-stone-600 dark:text-stone-300 font-medium">Input</th>
+              <th className="px-4 py-3 text-left text-stone-600 dark:text-stone-300 font-medium">Model</th>
+              <th className="px-4 py-3 text-left text-stone-600 dark:text-stone-300 font-medium">Failure Type</th>
+              <th className="px-4 py-3 text-left text-stone-600 dark:text-stone-300 font-medium">Error Message</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
-            {failures.slice(0, 20).map((failure, i) => (
-              <tr key={i} className="hover:bg-stone-50">
-                <td className="px-4 py-3 text-stone-900 max-w-xs truncate">
+          <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
+            {filteredFailures.slice(0, 20).map((failure, i) => (
+              <tr key={i} className="hover:bg-stone-50 dark:hover:bg-stone-800">
+                <td className="px-4 py-3 text-stone-900 dark:text-stone-100 max-w-xs truncate">
                   {failure.input?.slice(0, 40) || 'N/A'}{failure.input?.length > 40 ? '...' : ''}
                 </td>
-                <td className="px-4 py-3 text-stone-600">
+                <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
                   {failure.model?.split('/').pop() || 'N/A'}
                 </td>
                 <td className="px-4 py-3">
                   <span className="badge badge-error">{failure.failureType || 'Unknown'}</span>
                 </td>
-                <td className="px-4 py-3 text-error-600 text-xs max-w-md">
+                <td className="px-4 py-3 text-error-600 dark:text-error-400 text-xs max-w-md">
                   {failure.errorMessage?.slice(0, 100) || 'No error message'}
                   {failure.errorMessage?.length > 100 ? '...' : ''}
                 </td>
@@ -670,10 +705,10 @@ function FailuresTable({ results }) {
           </tbody>
         </table>
       </div>
-      {failures.length > 20 && (
-        <div className="p-4 text-center border-t border-stone-100">
-          <p className="text-sm text-stone-500">
-            Showing 20 of {failures.length} failures
+      {filteredFailures.length > 20 && (
+        <div className="p-4 text-center border-t border-stone-100 dark:border-stone-700">
+          <p className="text-sm text-stone-500 dark:text-stone-400">
+            Showing 20 of {filteredFailures.length} failures
           </p>
         </div>
       )}

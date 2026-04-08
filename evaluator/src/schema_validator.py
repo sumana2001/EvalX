@@ -126,11 +126,7 @@ def calculate_completeness(
         Float 0-1, where 1.0 means all required fields are populated
         Returns 1.0 if no required fields defined
     """
-    # No data = 0 completeness
-    if parsed_data is None:
-        return 0.0
-    
-    # No schema = assume complete
+    # No schema = assume complete (no requirements to check)
     if not expected_schema:
         return 1.0
     
@@ -141,7 +137,11 @@ def calculate_completeness(
     if not required_fields:
         return 1.0
     
-    # For non-dict data, can't check fields
+    # No data and we have requirements = 0 completeness
+    if parsed_data is None:
+        return 0.0
+    
+    # For non-dict data (like plain strings or arrays), can't check fields
     if not isinstance(parsed_data, dict):
         return 1.0
     
