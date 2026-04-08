@@ -125,6 +125,42 @@ router.get(
       score: item.score ? item.score / 10 : 0,
     }));
 
+    // Get failed items from evaluation_failures table
+    const failuresResult = await query(`
+      SELECT 
+        ef.id,
+        ef.model,
+        ef.failure_type as "failureType",
+        ef.error_message as "errorMessage",
+        ef.raw_output,
+        ef.failed_at as "failedAt",
+        ti.input,
+        pv.name as "promptName"
+      FROM evaluation_failures ef
+      LEFT JOIN evaluation_task_items ti ON ef.task_item_id = ti.id
+      LEFT JOIN prompt_variants pv ON ef.prompt_variant_id = pv.id
+      WHERE ef.run_id = $1
+      ORDER BY ef.failed_at DESC
+      LIMIT 100
+    `, [runId]);
+
+    // Get results grouped by prompt variant
+    const byPromptResult = await query(`
+      SELECT 
+        pv.name as "promptName",
+        pv.id as "promptVariantId",
+        COUNT(*)::int as count,
+        AVG(er.judge_score)::float / 10 as "avgScore",
+        AVG(er.latency_ms)::float as "avgLatencyMs",
+        AVG(er.completeness)::float as "avgCompleteness",
+        AVG(er.faithfulness)::float as "avgFaithfulness"
+      FROM execution_results er
+      LEFT JOIN prompt_variants pv ON er.prompt_variant_id = pv.id
+      WHERE er.run_id = $1
+      GROUP BY pv.id, pv.name
+      ORDER BY "avgScore" DESC NULLS LAST
+    `, [runId]);
+
     res.json({
       run: {
         id: run.id,
@@ -133,7 +169,9 @@ router.get(
       },
       summary,
       byModel: byModelResult.rows,
+      byPrompt: byPromptResult.rows,
       items,
+      failures: failuresResult.rows,
     });
   })
 );

@@ -164,11 +164,11 @@ export default function ResultsPage() {
             {/* Model comparison */}
             <ModelComparisonChart results={results} />
             
+            {/* Prompt comparison */}
+            <PromptComparisonChart results={results} />
+            
             {/* Latency distribution */}
             <LatencyChart results={results} />
-            
-            {/* Metrics breakdown */}
-            <MetricsRadarChart results={results} />
             
             {/* Success/Failure pie */}
             <SuccessRateChart results={results} />
@@ -176,6 +176,9 @@ export default function ResultsPage() {
 
           {/* Detailed results table */}
           <ResultsTable results={results} />
+
+          {/* Failures table */}
+          <FailuresTable results={results} />
         </div>
       )}
     </div>
@@ -561,6 +564,116 @@ function ResultsTable({ results }) {
         <div className="p-4 text-center border-t border-stone-100">
           <p className="text-sm text-stone-500">
             Showing 20 of {items.length} results
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Prompt comparison chart - shows which prompt variant performed best.
+ */
+function PromptComparisonChart({ results }) {
+  const { byPrompt } = results;
+  
+  if (!byPrompt || byPrompt.length === 0) {
+    return (
+      <div className="card p-6">
+        <h3 className="font-medium text-stone-900 mb-4">Prompt Comparison</h3>
+        <p className="text-stone-500 text-sm">No prompt comparison data available</p>
+      </div>
+    );
+  }
+
+  const data = byPrompt.map((p, i) => ({
+    name: p.promptName || `Prompt ${i + 1}`,
+    score: p.avgScore ? (p.avgScore * 10).toFixed(1) : 0,
+    count: p.count,
+  }));
+
+  return (
+    <div className="card p-6">
+      <h3 className="font-medium text-stone-900 mb-4">Prompt Comparison (Avg Score)</h3>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={data} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+          <XAxis type="number" domain={[0, 10]} stroke="#78716c" fontSize={12} />
+          <YAxis type="category" dataKey="name" stroke="#78716c" fontSize={12} width={120} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'white',
+              border: '1px solid #e7e5e4',
+              borderRadius: '8px',
+            }}
+            formatter={(value) => [`${value}/10`, 'Avg Score']}
+          />
+          <Bar dataKey="score" fill="#0891b2" radius={[0, 4, 4, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+      <div className="mt-4 text-sm text-stone-500">
+        {byPrompt.length > 1 && (
+          <p>
+            Best performing: <span className="font-medium text-stone-900">{data[0]?.name}</span> 
+            {' '}with {data[0]?.score}/10 avg score
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Failures table - shows failed executions with error messages.
+ */
+function FailuresTable({ results }) {
+  const { failures } = results;
+  
+  if (!failures || failures.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="card overflow-hidden">
+      <div className="p-4 border-b border-stone-100">
+        <h3 className="font-medium text-stone-900">Failed Executions</h3>
+        <p className="text-sm text-stone-500 mt-1">{failures.length} failures</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-stone-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-stone-600 font-medium">Input</th>
+              <th className="px-4 py-3 text-left text-stone-600 font-medium">Model</th>
+              <th className="px-4 py-3 text-left text-stone-600 font-medium">Failure Type</th>
+              <th className="px-4 py-3 text-left text-stone-600 font-medium">Error Message</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-stone-100">
+            {failures.slice(0, 20).map((failure, i) => (
+              <tr key={i} className="hover:bg-stone-50">
+                <td className="px-4 py-3 text-stone-900 max-w-xs truncate">
+                  {failure.input?.slice(0, 40) || 'N/A'}{failure.input?.length > 40 ? '...' : ''}
+                </td>
+                <td className="px-4 py-3 text-stone-600">
+                  {failure.model?.split('/').pop() || 'N/A'}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="badge badge-error">{failure.failureType || 'Unknown'}</span>
+                </td>
+                <td className="px-4 py-3 text-error-600 text-xs max-w-md">
+                  {failure.errorMessage?.slice(0, 100) || 'No error message'}
+                  {failure.errorMessage?.length > 100 ? '...' : ''}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {failures.length > 20 && (
+        <div className="p-4 text-center border-t border-stone-100">
+          <p className="text-sm text-stone-500">
+            Showing 20 of {failures.length} failures
           </p>
         </div>
       )}

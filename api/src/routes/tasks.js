@@ -148,6 +148,7 @@ router.get(
         t.created_at,
         t.updated_at,
         COUNT(DISTINCT ti.id)::int as item_count,
+        (SELECT COUNT(*)::int FROM prompt_variants WHERE task_id = t.id) as prompt_count,
         (SELECT template FROM prompt_variants WHERE task_id = t.id LIMIT 1) as prompt_template
       FROM evaluation_tasks t
       LEFT JOIN evaluation_task_items ti ON ti.task_id = t.id

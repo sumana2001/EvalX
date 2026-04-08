@@ -25,6 +25,11 @@ async function request(endpoint, options = {}) {
     throw new Error(error.message || `HTTP ${response.status}`);
   }
   
+  // Handle 204 No Content (DELETE responses)
+  if (response.status === 204) {
+    return null;
+  }
+  
   return response.json();
 }
 
@@ -106,6 +111,13 @@ export const runsApi = {
    * Get run results.
    */
   results: (id) => request(`/api/runs/${id}/results`),
+
+  /**
+   * Delete a run.
+   */
+  delete: (id) => request(`/api/runs/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
 // ============================================================

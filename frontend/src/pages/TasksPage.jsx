@@ -181,7 +181,7 @@ function TaskCard({ task, onDelete }) {
             {task.item_count || 0} items
           </span>
           <span className="badge bg-accent-100 text-accent-700">
-            {promptVariants.length || '?'} prompts
+            {task.prompt_count ?? promptVariants.length ?? 0} prompts
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}

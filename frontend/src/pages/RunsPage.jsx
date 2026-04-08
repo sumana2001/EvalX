@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Play, CheckCircle, XCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, Play, CheckCircle, XCircle, Clock, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import { runsApi, tasksApi } from '../lib/api';
 import { useMultiRunProgress } from '../hooks/useRunProgress';
 import { connectSocket } from '../lib/socket';
@@ -27,6 +27,22 @@ export default function RunsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Poll for updates while there are running jobs
+  useEffect(() => {
+    if (activeRunIds.length === 0) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const runsData = await runsApi.list();
+        setRuns(runsData.runs || []);
+      } catch (err) {
+        console.error('[RunsPage] Polling error:', err);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [activeRunIds.length]);
 
   // Listen for global run status changes and progress updates
   useEffect(() => {
@@ -105,6 +121,17 @@ export default function RunsPage() {
       ));
     } catch (err) {
       alert('Failed to start run: ' + err.message);
+    }
+  }
+
+  async function handleDeleteRun(runId) {
+    if (!confirm('Delete this run? This cannot be undone.')) return;
+    
+    try {
+      await runsApi.delete(runId);
+      setRuns(runs.filter(r => r.id !== runId));
+    } catch (err) {
+      alert('Failed to delete run: ' + err.message);
     }
   }
 
@@ -189,6 +216,7 @@ export default function RunsPage() {
               run={run}
               onStart={() => handleStartRun(run.id)}
               onViewResults={() => navigate(`/results/${run.id}`)}
+              onDelete={() => handleDeleteRun(run.id)}
             />
           ))}
         </div>
@@ -200,7 +228,7 @@ export default function RunsPage() {
 /**
  * Run card component with progress bar.
  */
-function RunCard({ run, onStart, onViewResults }) {
+function RunCard({ run, onStart, onViewResults, onDelete }) {
   const progress = run.progress;
   const isActive = run.status === 'running';
   const isPending = run.status === 'pending';
@@ -241,6 +269,13 @@ function RunCard({ run, onStart, onViewResults }) {
                 Start Run
               </button>
             )}
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="p-2 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-error-500 transition-colors"
+              title="Delete run"
+            >
+              <Trash2 size={18} />
+            </button>
           </div>
         </div>
 
