@@ -1,5 +1,5 @@
 # Grafana Datasource Provisioning
-# Auto-configures Prometheus as default datasource
+# Auto-configures Prometheus and PostgreSQL as datasources
 
 apiVersion: 1
 
@@ -9,4 +9,19 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+    editable: false
+
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: evalx
+    user: evalx
+    secureJsonData:
+      password: evalx
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 5
+      maxIdleConns: 2
+      connMaxLifetime: 14400
     editable: false
