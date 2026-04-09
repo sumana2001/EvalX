@@ -70,6 +70,36 @@ export async function insertExecutionResult(result) {
   return rows[0];
 }
 
+// Valid failure_type enum values in the database
+const VALID_FAILURE_TYPES = new Set([
+  'SCHEMA_VIOLATION',
+  'INCOMPLETE_OUTPUT',
+  'HALLUCINATION_DETECTED',
+  'LOW_QUALITY',
+  'TIMEOUT',
+  'PROVIDER_ERROR',
+  'EVALUATOR_ERROR',
+]);
+
+/**
+ * Normalize failure type to a valid database enum value.
+ * Maps unknown types (like RATE_LIMITED) to appropriate valid values.
+ */
+function normalizeFailureType(failureType) {
+  if (!failureType) return 'EVALUATOR_ERROR';
+  if (VALID_FAILURE_TYPES.has(failureType)) return failureType;
+  
+  // Map common unknown types to valid enum values
+  const typeMapping = {
+    'RATE_LIMITED': 'PROVIDER_ERROR',
+    'PARSE_ERROR': 'SCHEMA_VIOLATION',
+    'LOW_SIMILARITY': 'LOW_QUALITY',
+    'LOW_FAITHFULNESS': 'HALLUCINATION_DETECTED',
+  };
+  
+  return typeMapping[failureType] || 'PROVIDER_ERROR';
+}
+
 /**
  * Insert a failed evaluation into the failures table.
  * 
@@ -94,17 +124,28 @@ export async function insertEvaluationFailure(result) {
     RETURNING id, created_at
   `;
 
+  // Normalize failure type to valid enum
+  const normalizedType = normalizeFailureType(result.failure_type);
+  
+  // Include original failure type in error message if it was normalized
+  let errorMessage = result.failure_reason || result.error_message || 'Unknown error';
+  if (result.failure_type && result.failure_type !== normalizedType) {
+    errorMessage = `[${result.failure_type}] ${errorMessage}`;
+  }
+
   const params = [
     result.run_id,
     result.task_item_id,
     result.prompt_variant_id,
     result.model,
     result.repetition_index || 1,
-    result.failure_type || 'EVALUATOR_ERROR',
-    result.failure_reason || result.error_message || 'Unknown error',
+    normalizedType,
+    errorMessage,
     result.raw_output ?? null,
     result.retry_count || 0,
   ];
+
+  console.log(`[Persistence] Inserting failure: type=${normalizedType}, message=${errorMessage.slice(0, 100)}...`);
 
   const { rows } = await query(sql, params);
   return rows[0];
@@ -218,11 +259,20 @@ async function insertExecutionResultWithClient(client, result) {
  * Insert evaluation failure using a specific client (for transactions).
  */
 async function insertEvaluationFailureWithClient(client, result) {
+  // Normalize failure type to valid enum
+  const normalizedType = normalizeFailureType(result.failure_type);
+  
+  // Include original failure type in error message if it was normalized
+  let errorMessage = result.failure_reason || result.error_message || 'Unknown error';
+  if (result.failure_type && result.failure_type !== normalizedType) {
+    errorMessage = `[${result.failure_type}] ${errorMessage}`;
+  }
+
   const sql = `
     INSERT INTO evaluation_failures (
       run_id, task_item_id, prompt_variant_id, model, repetition_index,
-      failure_type, error_message, raw_output, retry_count, failed_at
-    ) VALUES ($1, $2, $3, $4, $5, $6::failure_type, $7, $8, $9, NOW())
+      failure_type, error_message, raw_output, retry_count
+    ) VALUES ($1, $2, $3, $4, $5, $6::failure_type, $7, $8, $9)
   `;
 
   await client.query(sql, [
@@ -231,8 +281,8 @@ async function insertEvaluationFailureWithClient(client, result) {
     result.prompt_variant_id,
     result.model,
     result.repetition_index || 1,
-    result.failure_type || 'EVALUATOR_ERROR',
-    result.failure_reason || result.error_message || 'Unknown error',
+    normalizedType,
+    errorMessage,
     result.raw_output ?? null,
     result.retry_count || 0,
   ]);

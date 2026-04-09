@@ -161,6 +161,9 @@ export default function ResultsPage() {
           {/* Summary cards */}
           <SummaryCards results={results} />
 
+          {/* Failures summary - shows prominently if there are failures */}
+          <FailuresSummary results={results} />
+
           {/* Charts grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Model comparison */}
@@ -652,6 +655,78 @@ function PromptComparisonChart({ results }) {
 }
 
 /**
+ * Failures summary - shows breakdown of failure reasons.
+ */
+function FailuresSummary({ results }) {
+  const { failures } = results;
+  
+  if (!failures || failures.length === 0) {
+    return null;
+  }
+
+  // Group failures by type
+  const byType = failures.reduce((acc, f) => {
+    const type = f.failureType || 'Unknown';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Group failures by model
+  const byModel = failures.reduce((acc, f) => {
+    const model = f.model?.split('/').pop() || 'Unknown';
+    acc[model] = (acc[model] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Get a sample error message for context
+  const sampleError = failures[0]?.errorMessage;
+
+  return (
+    <div className="card p-5 bg-error-50 dark:bg-error-900/20 border-error-200 dark:border-error-800">
+      <div className="flex items-start gap-4">
+        <div className="p-2 rounded-lg bg-error-100 dark:bg-error-900/30">
+          <XCircle size={24} className="text-error-600 dark:text-error-400" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-medium text-error-900 dark:text-error-300">
+            {failures.length} Execution{failures.length > 1 ? 's' : ''} Failed
+          </h3>
+          
+          {/* Failure types breakdown */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {Object.entries(byType).map(([type, count]) => (
+              <span key={type} className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-error-100 dark:bg-error-900/40 text-error-700 dark:text-error-400">
+                <span className="font-medium">{count}×</span> {type.replace(/_/g, ' ')}
+              </span>
+            ))}
+          </div>
+
+          {/* Models affected */}
+          <p className="mt-2 text-sm text-error-700 dark:text-error-400">
+            <span className="font-medium">Affected models:</span>{' '}
+            {Object.entries(byModel).map(([model, count], i) => (
+              <span key={model}>
+                {i > 0 && ', '}
+                {model} ({count})
+              </span>
+            ))}
+          </p>
+
+          {/* Sample error for context */}
+          {sampleError && (
+            <div className="mt-3 p-2 rounded bg-error-100 dark:bg-error-900/40">
+              <p className="text-xs text-error-600 dark:text-error-400 font-mono">
+                <span className="font-medium">Sample error:</span> {sampleError.slice(0, 200)}{sampleError.length > 200 ? '...' : ''}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Failures table - shows failed executions with error messages.
  */
 function FailuresTable({ results, modelFilter = 'all' }) {
@@ -669,7 +744,7 @@ function FailuresTable({ results, modelFilter = 'all' }) {
   return (
     <div className="card overflow-hidden">
       <div className="p-4 border-b border-stone-100 dark:border-stone-700">
-        <h3 className="font-medium text-stone-900 dark:text-stone-100">Failed Executions</h3>
+        <h3 className="font-medium text-stone-900 dark:text-stone-100">Failed Executions Details</h3>
         <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
           {filteredFailures.length} failures
           {modelFilter !== 'all' && ` • Filtered by: ${modelFilter}`}
