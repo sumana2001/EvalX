@@ -49,8 +49,8 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">Evaluation Tasks</h1>
-          <p className="text-stone-500 mt-1">
+          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">Evaluation Tasks</h1>
+          <p className="text-stone-500 dark:text-stone-400 mt-1">
             Define datasets, prompts, and expected schemas for evaluation.
           </p>
         </div>
@@ -65,9 +65,9 @@ export default function TasksPage() {
 
       {/* Error message */}
       {error && (
-        <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-lg flex items-center gap-3">
-          <AlertCircle className="text-error-500" size={20} />
-          <p className="text-error-700">{error}</p>
+        <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/30 border border-error-200 dark:border-error-800 rounded-lg flex items-center gap-3">
+          <AlertCircle className="text-error-500 dark:text-error-400" size={20} />
+          <p className="text-error-700 dark:text-error-400">{error}</p>
         </div>
       )}
 
@@ -82,13 +82,13 @@ export default function TasksPage() {
       {/* Tasks list */}
       {loading ? (
         <div className="card p-8 text-center">
-          <p className="text-stone-500">Loading tasks...</p>
+          <p className="text-stone-500 dark:text-stone-400">Loading tasks...</p>
         </div>
       ) : tasks.length === 0 ? (
         <div className="card p-8 text-center">
-          <FileJson className="mx-auto text-stone-300 mb-4" size={48} />
-          <p className="text-stone-500 mb-2">No evaluation tasks yet</p>
-          <p className="text-sm text-stone-400">
+          <FileJson className="mx-auto text-stone-300 dark:text-stone-600 mb-4" size={48} />
+          <p className="text-stone-500 dark:text-stone-400 mb-2">No evaluation tasks yet</p>
+          <p className="text-sm text-stone-400 dark:text-stone-500">
             Create your first task to define a dataset and prompts for evaluation.
           </p>
         </div>
@@ -162,30 +162,30 @@ function TaskCard({ task, onDelete }) {
     <div className="card">
       {/* Header */}
       <div
-        className="p-4 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition-colors"
+        className="p-4 flex items-center justify-between cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
         onClick={handleExpand}
       >
         <div className="flex items-center gap-3">
           {expanded ? (
-            <ChevronDown size={18} className="text-stone-400" />
+            <ChevronDown size={18} className="text-stone-400 dark:text-stone-500" />
           ) : (
-            <ChevronRight size={18} className="text-stone-400" />
+            <ChevronRight size={18} className="text-stone-400 dark:text-stone-500" />
           )}
           <div>
-            <h3 className="font-medium text-stone-900">{task.name}</h3>
-            <p className="text-sm text-stone-500">{task.description || 'No description'}</p>
+            <h3 className="font-medium text-stone-900 dark:text-stone-100">{task.name}</h3>
+            <p className="text-sm text-stone-500 dark:text-stone-400">{task.description || 'No description'}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <span className="badge badge-neutral">
             {task.item_count || 0} items
           </span>
-          <span className="badge bg-accent-100 text-accent-700">
+          <span className="badge bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400">
             {task.prompt_count ?? promptVariants.length ?? 0} prompts
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-2 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-error-500 transition-colors"
+            className="p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg text-stone-400 hover:text-error-500 dark:hover:text-error-400 transition-colors"
           >
             <Trash2 size={18} />
           </button>
@@ -194,17 +194,17 @@ function TaskCard({ task, onDelete }) {
 
       {/* Expanded details */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-stone-100 mt-2 pt-4">
+        <div className="px-4 pb-4 border-t border-stone-100 dark:border-stone-700 mt-2 pt-4">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="animate-spin text-stone-400" size={24} />
+              <Loader2 className="animate-spin text-stone-400 dark:text-stone-500" size={24} />
             </div>
           ) : (
             <>
               {/* Expected Schema */}
               <div className="mb-6">
-                <h4 className="font-medium text-stone-700 mb-2">Expected Output Schema</h4>
-                <pre className="bg-stone-50 p-3 rounded-lg text-stone-600 text-xs overflow-x-auto">
+                <h4 className="font-medium text-stone-700 dark:text-stone-300 mb-2">Expected Output Schema</h4>
+                <pre className="bg-stone-50 dark:bg-stone-800 p-3 rounded-lg text-stone-600 dark:text-stone-400 text-xs overflow-x-auto">
                   {taskDetails?.expected_schema 
                     ? JSON.stringify(taskDetails.expected_schema, null, 2) 
                     : task.expected_schema 
@@ -216,7 +216,7 @@ function TaskCard({ task, onDelete }) {
               {/* Prompt Variants */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-stone-700">Prompt Variants</h4>
+                  <h4 className="font-medium text-stone-700 dark:text-stone-300">Prompt Variants</h4>
                   <button
                     onClick={() => setShowAddPrompt(true)}
                     className="btn-ghost text-sm flex items-center gap-1"
@@ -239,7 +239,7 @@ function TaskCard({ task, onDelete }) {
 
                 {/* Prompt list */}
                 {promptVariants.length === 0 ? (
-                  <p className="text-sm text-stone-400 py-4">
+                  <p className="text-sm text-stone-400 dark:text-stone-500 py-4">
                     No prompt variants yet. Add one to start evaluating.
                   </p>
                 ) : (
@@ -247,25 +247,25 @@ function TaskCard({ task, onDelete }) {
                     {promptVariants.map((prompt, idx) => (
                       <div 
                         key={prompt.id} 
-                        className="bg-stone-50 p-3 rounded-lg border border-stone-200"
+                        className="bg-stone-50 dark:bg-stone-800 p-3 rounded-lg border border-stone-200 dark:border-stone-700"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-stone-700">
+                          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
                             {prompt.name || `Variant ${idx + 1}`}
                           </span>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-stone-400">v{prompt.version}</span>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">v{prompt.version}</span>
                             {promptVariants.length > 1 && (
                               <button
                                 onClick={() => handleDeletePrompt(prompt.id)}
-                                className="p-1 hover:bg-stone-200 rounded text-stone-400 hover:text-error-500"
+                                className="p-1 hover:bg-stone-200 dark:hover:bg-stone-700 rounded text-stone-400 hover:text-error-500 dark:hover:text-error-400"
                               >
                                 <Trash2 size={14} />
                               </button>
                             )}
                           </div>
                         </div>
-                        <pre className="text-xs text-stone-600 whitespace-pre-wrap font-mono">
+                        <pre className="text-xs text-stone-600 dark:text-stone-400 whitespace-pre-wrap font-mono">
                           {prompt.template}
                         </pre>
                       </div>
@@ -314,12 +314,12 @@ function AddPromptForm({ taskId, taskName, variantNumber, onSuccess, onCancel })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4 p-4 bg-accent-50 rounded-lg border border-accent-200">
+    <form onSubmit={handleSubmit} className="mb-4 p-4 bg-accent-50 dark:bg-accent-900/20 rounded-lg border border-accent-200 dark:border-accent-800">
       {error && (
-        <p className="text-sm text-error-600 mb-3">{error}</p>
+        <p className="text-sm text-error-600 dark:text-error-400 mb-3">{error}</p>
       )}
       <div className="mb-3">
-        <label className="text-sm text-stone-600 mb-1 block">Variant Name</label>
+        <label className="text-sm text-stone-600 dark:text-stone-400 mb-1 block">Variant Name</label>
         <input
           type="text"
           className="input text-sm"
@@ -329,8 +329,8 @@ function AddPromptForm({ taskId, taskName, variantNumber, onSuccess, onCancel })
         />
       </div>
       <div className="mb-3">
-        <label className="text-sm text-stone-600 mb-1 block">
-          Template <span className="text-stone-400">(use {'{{input}}'} and {'{{context}}'})</span>
+        <label className="text-sm text-stone-600 dark:text-stone-400 mb-1 block">
+          Template <span className="text-stone-400 dark:text-stone-500">(use {'{{input}}'} and {'{{context}}'})</span>
         </label>
         <textarea
           className="input text-sm font-mono"
@@ -428,13 +428,13 @@ function CreateTaskForm({ onSuccess, onCancel }) {
 
   return (
     <div className="card mb-6">
-      <div className="p-4 border-b border-stone-100">
-        <h2 className="text-lg font-semibold text-stone-900">Create New Task</h2>
+      <div className="p-4 border-b border-stone-100 dark:border-stone-700">
+        <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Create New Task</h2>
       </div>
       
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         {error && (
-          <div className="p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
+          <div className="p-3 bg-error-50 dark:bg-error-900/30 border border-error-200 dark:border-error-800 rounded-lg text-error-700 dark:text-error-400 text-sm">
             {error}
           </div>
         )}
@@ -468,7 +468,7 @@ function CreateTaskForm({ onSuccess, onCancel }) {
         <div>
           <label className="label">
             Prompt Template
-            <span className="text-stone-400 font-normal ml-2">
+            <span className="text-stone-400 dark:text-stone-500 font-normal ml-2">
               Use {'{{input}}'} and {'{{context}}'} as placeholders
             </span>
           </label>
@@ -509,14 +509,14 @@ function CreateTaskForm({ onSuccess, onCancel }) {
           
           <div className="space-y-4">
             {formData.items.map((item, index) => (
-              <div key={index} className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+              <div key={index} className="bg-stone-50 dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-stone-600">Item {index + 1}</span>
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Item {index + 1}</span>
                   {formData.items.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeItem(index)}
-                      className="text-stone-400 hover:text-error-500"
+                      className="text-stone-400 hover:text-error-500 dark:hover:text-error-400"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -524,7 +524,7 @@ function CreateTaskForm({ onSuccess, onCancel }) {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-stone-500 mb-1 block">Input *</label>
+                    <label className="text-xs text-stone-500 dark:text-stone-400 mb-1 block">Input *</label>
                     <textarea
                       className="input text-sm"
                       rows={2}
@@ -534,7 +534,7 @@ function CreateTaskForm({ onSuccess, onCancel }) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500 mb-1 block">Context</label>
+                    <label className="text-xs text-stone-500 dark:text-stone-400 mb-1 block">Context</label>
                     <textarea
                       className="input text-sm"
                       rows={2}
@@ -544,7 +544,7 @@ function CreateTaskForm({ onSuccess, onCancel }) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500 mb-1 block">Ground Truth</label>
+                    <label className="text-xs text-stone-500 dark:text-stone-400 mb-1 block">Ground Truth</label>
                     <textarea
                       className="input text-sm"
                       rows={2}
@@ -560,7 +560,7 @@ function CreateTaskForm({ onSuccess, onCancel }) {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-stone-100">
+        <div className="flex justify-end gap-3 pt-4 border-t border-stone-100 dark:border-stone-700">
           <button
             type="button"
             onClick={onCancel}

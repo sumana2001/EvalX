@@ -103,8 +103,8 @@ export default function ResultsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">Results</h1>
-          <p className="text-stone-500 mt-1">
+          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">Results</h1>
+          <p className="text-stone-500 dark:text-stone-400 mt-1">
             Analyze evaluation metrics and compare model performance.
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function ResultsPage() {
         {/* Run selector */}
         {runs.length > 0 && (
           <div className="flex items-center gap-3">
-            <label className="text-sm text-stone-600">Run:</label>
+            <label className="text-sm text-stone-600 dark:text-stone-400">Run:</label>
             <select
               className="input w-64"
               value={selectedRunId}
@@ -130,26 +130,26 @@ export default function ResultsPage() {
 
       {/* Error message */}
       {error && (
-        <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-lg flex items-center gap-3">
-          <AlertCircle className="text-error-500" size={20} />
-          <p className="text-error-700">{error}</p>
+        <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/30 border border-error-200 dark:border-error-800 rounded-lg flex items-center gap-3">
+          <AlertCircle className="text-error-500 dark:text-error-400" size={20} />
+          <p className="text-error-700 dark:text-error-400">{error}</p>
         </div>
       )}
 
       {/* Loading state */}
       {loading && (
         <div className="card p-12 text-center">
-          <Loader2 className="mx-auto text-stone-400 animate-spin mb-3" size={32} />
-          <p className="text-stone-500">Loading results...</p>
+          <Loader2 className="mx-auto text-stone-400 dark:text-stone-500 animate-spin mb-3" size={32} />
+          <p className="text-stone-500 dark:text-stone-400">Loading results...</p>
         </div>
       )}
 
       {/* No runs available */}
       {!loading && runs.length === 0 && (
         <div className="card p-12 text-center">
-          <TrendingUp className="mx-auto text-stone-300 mb-4" size={48} />
-          <p className="text-stone-500 mb-2">No completed runs yet</p>
-          <p className="text-sm text-stone-400">
+          <TrendingUp className="mx-auto text-stone-300 dark:text-stone-600 mb-4" size={48} />
+          <p className="text-stone-500 dark:text-stone-400 mb-2">No completed runs yet</p>
+          <p className="text-sm text-stone-400 dark:text-stone-500">
             Results will appear here after evaluation runs complete.
           </p>
         </div>
@@ -214,12 +214,12 @@ function SummaryCards({ results }) {
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div className="card p-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-accent-100">
-            <TrendingUp size={20} className="text-accent-600" />
+          <div className="p-2 rounded-lg bg-accent-100 dark:bg-accent-900/30">
+            <TrendingUp size={20} className="text-accent-600 dark:text-accent-400" />
           </div>
           <div>
-            <p className="text-sm text-stone-500">Avg Score</p>
-            <p className="text-2xl font-semibold text-stone-900">
+            <p className="text-sm text-stone-500 dark:text-stone-400">Avg Score</p>
+            <p className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
               {(summary?.avgScore * 10 || 0).toFixed(1)}/10
             </p>
           </div>
@@ -228,12 +228,12 @@ function SummaryCards({ results }) {
 
       <div className="card p-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-stone-100">
-            <Clock size={20} className="text-stone-600" />
+          <div className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700">
+            <Clock size={20} className="text-stone-600 dark:text-stone-400" />
           </div>
           <div>
-            <p className="text-sm text-stone-500">Avg Latency</p>
-            <p className="text-2xl font-semibold text-stone-900">
+            <p className="text-sm text-stone-500 dark:text-stone-400">Avg Latency</p>
+            <p className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
               {summary?.avgLatencyMs?.toFixed(0) || 0} ms
             </p>
           </div>
@@ -242,12 +242,12 @@ function SummaryCards({ results }) {
 
       <div className="card p-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-success-100">
-            <CheckCircle size={20} className="text-success-600" />
+          <div className="p-2 rounded-lg bg-success-100 dark:bg-success-900/30">
+            <CheckCircle size={20} className="text-success-600 dark:text-success-400" />
           </div>
           <div>
-            <p className="text-sm text-stone-500">Passed</p>
-            <p className="text-2xl font-semibold text-success-600">
+            <p className="text-sm text-stone-500 dark:text-stone-400">Passed</p>
+            <p className="text-2xl font-semibold text-success-600 dark:text-success-400">
               {summary?.passed || 0}
             </p>
           </div>
@@ -256,12 +256,12 @@ function SummaryCards({ results }) {
 
       <div className="card p-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-error-100">
-            <XCircle size={20} className="text-error-600" />
+          <div className="p-2 rounded-lg bg-error-100 dark:bg-error-900/30">
+            <XCircle size={20} className="text-error-600 dark:text-error-400" />
           </div>
           <div>
-            <p className="text-sm text-stone-500">Failed</p>
-            <p className="text-2xl font-semibold text-error-600">
+            <p className="text-sm text-stone-500 dark:text-stone-400">Failed</p>
+            <p className="text-2xl font-semibold text-error-600 dark:text-error-400">
               {summary?.failed || 0}
             </p>
           </div>
@@ -280,8 +280,8 @@ function ModelComparisonChart({ results }) {
   if (!byModel || byModel.length === 0) {
     return (
       <div className="card p-6">
-        <h3 className="font-medium text-stone-900 mb-4">Model Comparison</h3>
-        <p className="text-stone-500 text-sm">No model data available</p>
+        <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Model Comparison</h3>
+        <p className="text-stone-500 dark:text-stone-400 text-sm">No model data available</p>
       </div>
     );
   }
@@ -294,17 +294,18 @@ function ModelComparisonChart({ results }) {
 
   return (
     <div className="card p-6">
-      <h3 className="font-medium text-stone-900 mb-4">Model Comparison (Avg Score)</h3>
+      <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Model Comparison (Avg Score)</h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#57534e" strokeOpacity={0.3} />
           <XAxis type="number" domain={[0, 10]} stroke="#78716c" fontSize={12} />
           <YAxis type="category" dataKey="name" stroke="#78716c" fontSize={12} width={100} />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e7e5e4',
+              backgroundColor: 'var(--tooltip-bg, white)',
+              border: '1px solid #57534e',
               borderRadius: '8px',
+              color: 'var(--tooltip-text, black)',
             }}
           />
           <Bar dataKey="score" fill={COLORS.primary} radius={[0, 4, 4, 0]} />
@@ -323,8 +324,8 @@ function LatencyChart({ results }) {
   if (!byModel || byModel.length === 0) {
     return (
       <div className="card p-6">
-        <h3 className="font-medium text-stone-900 mb-4">Latency Distribution</h3>
-        <p className="text-stone-500 text-sm">No latency data available</p>
+        <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Latency Distribution</h3>
+        <p className="text-stone-500 dark:text-stone-400 text-sm">No latency data available</p>
       </div>
     );
   }
@@ -337,16 +338,16 @@ function LatencyChart({ results }) {
 
   return (
     <div className="card p-6">
-      <h3 className="font-medium text-stone-900 mb-4">Latency by Model (ms)</h3>
+      <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Latency by Model (ms)</h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#57534e" strokeOpacity={0.3} />
           <XAxis dataKey="name" stroke="#78716c" fontSize={12} />
           <YAxis stroke="#78716c" fontSize={12} />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e7e5e4',
+              backgroundColor: 'var(--tooltip-bg, white)',
+              border: '1px solid #57534e',
               borderRadius: '8px',
             }}
           />
@@ -366,8 +367,8 @@ function MetricsRadarChart({ results }) {
   if (!byModel || byModel.length === 0) {
     return (
       <div className="card p-6">
-        <h3 className="font-medium text-stone-900 mb-4">Metrics Breakdown</h3>
-        <p className="text-stone-500 text-sm">No metrics data available</p>
+        <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Metrics Breakdown</h3>
+        <p className="text-stone-500 dark:text-stone-400 text-sm">No metrics data available</p>
       </div>
     );
   }
@@ -385,16 +386,16 @@ function MetricsRadarChart({ results }) {
 
   return (
     <div className="card p-6">
-      <h3 className="font-medium text-stone-900 mb-4">Metrics by Model</h3>
+      <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Metrics by Model</h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#57534e" strokeOpacity={0.3} />
           <XAxis dataKey="metric" stroke="#78716c" fontSize={11} />
           <YAxis domain={[0, 10]} stroke="#78716c" fontSize={12} />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e7e5e4',
+              backgroundColor: 'var(--tooltip-bg, white)',
+              border: '1px solid #57534e',
               borderRadius: '8px',
             }}
           />
@@ -429,7 +430,7 @@ function SuccessRateChart({ results }) {
 
   return (
     <div className="card p-6">
-      <h3 className="font-medium text-stone-900 mb-4">Success Rate</h3>
+      <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Success Rate</h3>
       <div className="flex items-center justify-center">
         <ResponsiveContainer width={200} height={200}>
           <PieChart>
@@ -447,22 +448,22 @@ function SuccessRateChart({ results }) {
             </Pie>
             <Tooltip
               contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e7e5e4',
+                backgroundColor: 'var(--tooltip-bg, white)',
+                border: '1px solid #57534e',
                 borderRadius: '8px',
               }}
             />
           </PieChart>
         </ResponsiveContainer>
         <div className="ml-4">
-          <p className="text-3xl font-semibold text-stone-900">{successRate}%</p>
-          <p className="text-sm text-stone-500">Success Rate</p>
+          <p className="text-3xl font-semibold text-stone-900 dark:text-stone-100">{successRate}%</p>
+          <p className="text-sm text-stone-500 dark:text-stone-400">Success Rate</p>
           <div className="mt-3 space-y-1 text-sm">
-            <p className="flex items-center gap-2">
+            <p className="flex items-center gap-2 text-stone-700 dark:text-stone-300">
               <span className="w-3 h-3 rounded-full bg-success-500" />
               Passed: {data[0].value}
             </p>
-            <p className="flex items-center gap-2">
+            <p className="flex items-center gap-2 text-stone-700 dark:text-stone-300">
               <span className="w-3 h-3 rounded-full bg-error-500" />
               Failed: {data[1].value}
             </p>
@@ -513,25 +514,25 @@ function ResultsTable({ results, modelFilter = 'all' }) {
             {filteredItems.slice(0, 20).map((item, i) => (
               <React.Fragment key={i}>
                 <tr 
-                  className="hover:bg-stone-50 cursor-pointer"
+                  className="hover:bg-stone-50 dark:hover:bg-stone-800 cursor-pointer"
                   onClick={() => setExpandedRow(expandedRow === i ? null : i)}
                 >
-                  <td className="px-4 py-3 text-stone-900 max-w-xs truncate">
+                  <td className="px-4 py-3 text-stone-900 dark:text-stone-100 max-w-xs truncate">
                     {item.input?.slice(0, 50) || 'N/A'}{item.input?.length > 50 ? '...' : ''}
                   </td>
-                  <td className="px-4 py-3 text-stone-600">
+                  <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
                     {item.model?.split('/').pop() || 'N/A'}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`font-medium ${
-                      item.score >= 0.7 ? 'text-success-600' :
-                      item.score >= 0.5 ? 'text-warning-600' :
-                      'text-error-600'
+                      item.score >= 0.7 ? 'text-success-600 dark:text-success-400' :
+                      item.score >= 0.5 ? 'text-warning-600 dark:text-warning-400' :
+                      'text-error-600 dark:text-error-400'
                     }`}>
                       {item.score ? (item.score * 10).toFixed(1) : '—'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center text-stone-600">
+                  <td className="px-4 py-3 text-center text-stone-600 dark:text-stone-400">
                     {item.latencyMs || '—'} ms
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -543,16 +544,16 @@ function ResultsTable({ results, modelFilter = 'all' }) {
                   </td>
                 </tr>
                 {expandedRow === i && (
-                  <tr className="bg-stone-50">
+                  <tr className="bg-stone-50 dark:bg-stone-800">
                     <td colSpan={5} className="px-4 py-4">
                       <div className="space-y-3">
                         <div>
-                          <span className="text-xs font-medium text-stone-500 uppercase">Full Input</span>
-                          <p className="mt-1 text-stone-700 whitespace-pre-wrap">{item.input || 'N/A'}</p>
+                          <span className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase">Full Input</span>
+                          <p className="mt-1 text-stone-700 dark:text-stone-300 whitespace-pre-wrap">{item.input || 'N/A'}</p>
                         </div>
                         <div>
-                          <span className="text-xs font-medium text-stone-500 uppercase">Model Output</span>
-                          <pre className="mt-1 text-stone-700 whitespace-pre-wrap bg-white p-3 rounded border border-stone-200 text-sm overflow-x-auto">
+                          <span className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase">Model Output</span>
+                          <pre className="mt-1 text-stone-700 dark:text-stone-300 whitespace-pre-wrap bg-white dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-700 text-sm overflow-x-auto">
                             {item.raw_output || 'No output available'}
                           </pre>
                         </div>
@@ -560,20 +561,20 @@ function ResultsTable({ results, modelFilter = 'all' }) {
                           <div className="flex gap-6">
                             {item.completeness != null && (
                               <div>
-                                <span className="text-xs font-medium text-stone-500">Completeness</span>
-                                <p className="text-stone-700">{(item.completeness * 100).toFixed(0)}%</p>
+                                <span className="text-xs font-medium text-stone-500 dark:text-stone-400">Completeness</span>
+                                <p className="text-stone-700 dark:text-stone-300">{(item.completeness * 100).toFixed(0)}%</p>
                               </div>
                             )}
                             {item.faithfulness != null && (
                               <div>
-                                <span className="text-xs font-medium text-stone-500">Faithfulness</span>
-                                <p className="text-stone-700">{(item.faithfulness * 100).toFixed(0)}%</p>
+                                <span className="text-xs font-medium text-stone-500 dark:text-stone-400">Faithfulness</span>
+                                <p className="text-stone-700 dark:text-stone-300">{(item.faithfulness * 100).toFixed(0)}%</p>
                               </div>
                             )}
                             {item.contextRelevance != null && (
                               <div>
-                                <span className="text-xs font-medium text-stone-500">Context Relevance</span>
-                                <p className="text-stone-700">{(item.contextRelevance * 100).toFixed(0)}%</p>
+                                <span className="text-xs font-medium text-stone-500 dark:text-stone-400">Context Relevance</span>
+                                <p className="text-stone-700 dark:text-stone-300">{(item.contextRelevance * 100).toFixed(0)}%</p>
                               </div>
                             )}
                           </div>
@@ -588,8 +589,8 @@ function ResultsTable({ results, modelFilter = 'all' }) {
         </table>
       </div>
       {items.length > 20 && (
-        <div className="p-4 text-center border-t border-stone-100">
-          <p className="text-sm text-stone-500">
+        <div className="p-4 text-center border-t border-stone-100 dark:border-stone-700">
+          <p className="text-sm text-stone-500 dark:text-stone-400">
             Showing 20 of {items.length} results
           </p>
         </div>
@@ -607,8 +608,8 @@ function PromptComparisonChart({ results }) {
   if (!byPrompt || byPrompt.length === 0) {
     return (
       <div className="card p-6">
-        <h3 className="font-medium text-stone-900 mb-4">Prompt Comparison</h3>
-        <p className="text-stone-500 text-sm">No prompt comparison data available</p>
+        <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Prompt Comparison</h3>
+        <p className="text-stone-500 dark:text-stone-400 text-sm">No prompt comparison data available</p>
       </div>
     );
   }
@@ -621,16 +622,16 @@ function PromptComparisonChart({ results }) {
 
   return (
     <div className="card p-6">
-      <h3 className="font-medium text-stone-900 mb-4">Prompt Comparison (Avg Score)</h3>
+      <h3 className="font-medium text-stone-900 dark:text-stone-100 mb-4">Prompt Comparison (Avg Score)</h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#57534e" strokeOpacity={0.3} />
           <XAxis type="number" domain={[0, 10]} stroke="#78716c" fontSize={12} />
           <YAxis type="category" dataKey="name" stroke="#78716c" fontSize={12} width={120} />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e7e5e4',
+              backgroundColor: 'var(--tooltip-bg, white)',
+              border: '1px solid #57534e',
               borderRadius: '8px',
             }}
             formatter={(value) => [`${value}/10`, 'Avg Score']}
@@ -638,10 +639,10 @@ function PromptComparisonChart({ results }) {
           <Bar dataKey="score" fill="#0891b2" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
-      <div className="mt-4 text-sm text-stone-500">
+      <div className="mt-4 text-sm text-stone-500 dark:text-stone-400">
         {byPrompt.length > 1 && (
           <p>
-            Best performing: <span className="font-medium text-stone-900">{data[0]?.name}</span> 
+            Best performing: <span className="font-medium text-stone-900 dark:text-stone-100">{data[0]?.name}</span> 
             {' '}with {data[0]?.score}/10 avg score
           </p>
         )}

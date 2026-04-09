@@ -32,6 +32,10 @@
     --success: 142 76% 36%;
     --error: 0 84% 60%;
     --warning: 38 92% 50%;
+
+    /* Tooltip colors for Recharts */
+    --tooltip-bg: white;
+    --tooltip-text: #1c1917;
   }
 
   .dark {
@@ -47,6 +51,10 @@
     
     --border: 24 10% 25%;
     --input: 24 10% 20%;
+
+    /* Tooltip colors for Recharts */
+    --tooltip-bg: #292524;
+    --tooltip-text: #fafaf9;
   }
 
   * {

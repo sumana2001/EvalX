@@ -37,7 +37,7 @@ function Dashboard() {
   if (error) {
     return (
       <div className="p-8">
-        <div className="p-4 bg-error-50 border border-error-200 rounded-lg text-error-700">
+        <div className="p-4 bg-error-50 dark:bg-error-900/30 border border-error-200 dark:border-error-800 rounded-lg text-error-700 dark:text-error-400">
           Failed to load dashboard: {error}
         </div>
       </div>
@@ -46,30 +46,30 @@ function Dashboard() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-semibold text-stone-900 mb-6">Dashboard</h1>
+      <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-6">Dashboard</h1>
       
       {/* Key metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-accent-100">
-              <Play size={20} className="text-accent-600" />
+            <div className="p-2 rounded-lg bg-accent-100 dark:bg-accent-900/30">
+              <Play size={20} className="text-accent-600 dark:text-accent-400" />
             </div>
             <div>
-              <p className="text-sm text-stone-500">Total Runs</p>
-              <p className="text-2xl font-semibold text-stone-900">{stats?.runs?.total || 0}</p>
+              <p className="text-sm text-stone-500 dark:text-stone-400">Total Runs</p>
+              <p className="text-2xl font-semibold text-stone-900 dark:text-stone-100">{stats?.runs?.total || 0}</p>
             </div>
           </div>
         </div>
 
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-success-100">
-              <CheckCircle size={20} className="text-success-600" />
+            <div className="p-2 rounded-lg bg-success-100 dark:bg-success-900/30">
+              <CheckCircle size={20} className="text-success-600 dark:text-success-400" />
             </div>
             <div>
-              <p className="text-sm text-stone-500">Success Rate</p>
-              <p className="text-2xl font-semibold text-success-600">
+              <p className="text-sm text-stone-500 dark:text-stone-400">Success Rate</p>
+              <p className="text-2xl font-semibold text-success-600 dark:text-success-400">
                 {stats?.executions?.successRate != null ? `${stats.executions.successRate}%` : '--'}
               </p>
             </div>
@@ -78,12 +78,12 @@ function Dashboard() {
 
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-stone-100">
-              <Clock size={20} className="text-stone-600" />
+            <div className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700">
+              <Clock size={20} className="text-stone-600 dark:text-stone-400" />
             </div>
             <div>
-              <p className="text-sm text-stone-500">Avg Latency</p>
-              <p className="text-2xl font-semibold text-stone-900">
+              <p className="text-sm text-stone-500 dark:text-stone-400">Avg Latency</p>
+              <p className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
                 {stats?.executions?.avgLatencyMs ? `${Math.round(stats.executions.avgLatencyMs)} ms` : '--'}
               </p>
             </div>
@@ -92,12 +92,12 @@ function Dashboard() {
 
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-accent-100">
-              <TrendingUp size={20} className="text-accent-600" />
+            <div className="p-2 rounded-lg bg-accent-100 dark:bg-accent-900/30">
+              <TrendingUp size={20} className="text-accent-600 dark:text-accent-400" />
             </div>
             <div>
-              <p className="text-sm text-stone-500">Avg Score</p>
-              <p className="text-2xl font-semibold text-stone-900">
+              <p className="text-sm text-stone-500 dark:text-stone-400">Avg Score</p>
+              <p className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
                 {stats?.executions?.avgScore != null ? `${(stats.executions.avgScore * 10).toFixed(1)}/10` : '--'}
               </p>
             </div>
@@ -108,44 +108,44 @@ function Dashboard() {
       {/* Secondary stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="card p-4 text-center">
-          <p className="text-sm text-stone-500">Tasks</p>
-          <p className="text-xl font-semibold text-stone-900">{stats?.tasks?.total || 0}</p>
+          <p className="text-sm text-stone-500 dark:text-stone-400">Tasks</p>
+          <p className="text-xl font-semibold text-stone-900 dark:text-stone-100">{stats?.tasks?.total || 0}</p>
         </div>
         <div className="card p-4 text-center">
-          <p className="text-sm text-stone-500">Completed Runs</p>
-          <p className="text-xl font-semibold text-success-600">{stats?.runs?.completed || 0}</p>
+          <p className="text-sm text-stone-500 dark:text-stone-400">Completed Runs</p>
+          <p className="text-xl font-semibold text-success-600 dark:text-success-400">{stats?.runs?.completed || 0}</p>
         </div>
         <div className="card p-4 text-center">
-          <p className="text-sm text-stone-500">Failed Runs</p>
-          <p className="text-xl font-semibold text-error-600">{stats?.runs?.failed || 0}</p>
+          <p className="text-sm text-stone-500 dark:text-stone-400">Failed Runs</p>
+          <p className="text-xl font-semibold text-error-600 dark:text-error-400">{stats?.runs?.failed || 0}</p>
         </div>
         <div className="card p-4 text-center">
-          <p className="text-sm text-stone-500">Total Executions</p>
-          <p className="text-xl font-semibold text-stone-900">{stats?.executions?.total || 0}</p>
+          <p className="text-sm text-stone-500 dark:text-stone-400">Total Executions</p>
+          <p className="text-xl font-semibold text-stone-900 dark:text-stone-100">{stats?.executions?.total || 0}</p>
         </div>
       </div>
 
       {/* Recent runs */}
       {stats?.recentRuns?.length > 0 && (
         <div className="card mb-8">
-          <div className="p-4 border-b border-stone-100">
-            <h3 className="font-medium text-stone-900">Recent Runs</h3>
+          <div className="p-4 border-b border-stone-100 dark:border-stone-700">
+            <h3 className="font-medium text-stone-900 dark:text-stone-100">Recent Runs</h3>
           </div>
-          <div className="divide-y divide-stone-100">
+          <div className="divide-y divide-stone-100 dark:divide-stone-700">
             {stats.recentRuns.map(run => (
               <div key={run.id} className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-stone-900">{run.name || `Run ${run.id.slice(0, 8)}`}</p>
-                  <p className="text-sm text-stone-500">{run.task_name}</p>
+                  <p className="font-medium text-stone-900 dark:text-stone-100">{run.name || `Run ${run.id.slice(0, 8)}`}</p>
+                  <p className="text-sm text-stone-500 dark:text-stone-400">{run.task_name}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-stone-500">
+                  <span className="text-sm text-stone-500 dark:text-stone-400">
                     {run.completed_jobs + run.failed_jobs}/{run.total_jobs} jobs
                   </span>
                   <span className={`badge ${
                     run.status === 'completed' ? 'badge-success' :
                     run.status === 'failed' ? 'badge-error' :
-                    run.status === 'running' ? 'bg-accent-100 text-accent-700' :
+                    run.status === 'running' ? 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400' :
                     'badge-neutral'
                   }`}>
                     {run.status}
@@ -160,34 +160,34 @@ function Dashboard() {
       {/* Model stats */}
       {stats?.modelStats?.length > 0 && (
         <div className="card">
-          <div className="p-4 border-b border-stone-100">
-            <h3 className="font-medium text-stone-900">Model Performance</h3>
+          <div className="p-4 border-b border-stone-100 dark:border-stone-700">
+            <h3 className="font-medium text-stone-900 dark:text-stone-100">Model Performance</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-stone-50">
+              <thead className="bg-stone-50 dark:bg-stone-800">
                 <tr>
-                  <th className="px-4 py-3 text-left text-stone-600 font-medium">Model</th>
-                  <th className="px-4 py-3 text-center text-stone-600 font-medium">Executions</th>
-                  <th className="px-4 py-3 text-center text-stone-600 font-medium">Avg Score</th>
-                  <th className="px-4 py-3 text-center text-stone-600 font-medium">Avg Latency</th>
+                  <th className="px-4 py-3 text-left text-stone-600 dark:text-stone-400 font-medium">Model</th>
+                  <th className="px-4 py-3 text-center text-stone-600 dark:text-stone-400 font-medium">Executions</th>
+                  <th className="px-4 py-3 text-center text-stone-600 dark:text-stone-400 font-medium">Avg Score</th>
+                  <th className="px-4 py-3 text-center text-stone-600 dark:text-stone-400 font-medium">Avg Latency</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
                 {stats.modelStats.map(model => (
                   <tr key={model.model}>
-                    <td className="px-4 py-3 text-stone-900 font-medium">{model.model}</td>
-                    <td className="px-4 py-3 text-center text-stone-600">{model.count}</td>
+                    <td className="px-4 py-3 text-stone-900 dark:text-stone-100 font-medium">{model.model}</td>
+                    <td className="px-4 py-3 text-center text-stone-600 dark:text-stone-400">{model.count}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`font-medium ${
-                        model.avgScore >= 0.7 ? 'text-success-600' :
-                        model.avgScore >= 0.5 ? 'text-warning-600' :
-                        'text-error-600'
+                        model.avgScore >= 0.7 ? 'text-success-600 dark:text-success-400' :
+                        model.avgScore >= 0.5 ? 'text-warning-600 dark:text-warning-400' :
+                        'text-error-600 dark:text-error-400'
                       }`}>
                         {model.avgScore != null ? (model.avgScore * 10).toFixed(1) : '--'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-stone-600">
+                    <td className="px-4 py-3 text-center text-stone-600 dark:text-stone-400">
                       {model.avgLatencyMs ? `${Math.round(model.avgLatencyMs)} ms` : '--'}
                     </td>
                   </tr>
@@ -201,9 +201,9 @@ function Dashboard() {
       {/* Empty state */}
       {(!stats?.recentRuns?.length && !stats?.modelStats?.length) && (
         <div className="card p-8 text-center">
-          <Database className="mx-auto text-stone-300 mb-4" size={48} />
-          <p className="text-stone-500 mb-2">No data yet</p>
-          <p className="text-sm text-stone-400">
+          <Database className="mx-auto text-stone-300 dark:text-stone-600 mb-4" size={48} />
+          <p className="text-stone-500 dark:text-stone-400 mb-2">No data yet</p>
+          <p className="text-sm text-stone-400 dark:text-stone-500">
             Create tasks and run evaluations to see metrics here.
           </p>
         </div>

@@ -146,15 +146,15 @@ export default function RunsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">Evaluation Runs</h1>
-          <p className="text-stone-500 mt-1">
+          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">Evaluation Runs</h1>
+          <p className="text-stone-500 dark:text-stone-400 mt-1">
             Run evaluations across multiple models with real-time progress.
           </p>
         </div>
         <div className="flex items-center gap-4">
           {activeRunIds.length > 0 && (
-            <span className={`flex items-center gap-2 text-sm ${isConnected ? 'text-success-600' : 'text-stone-400'}`}>
-              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success-500' : 'bg-stone-300'}`} />
+            <span className={`flex items-center gap-2 text-sm ${isConnected ? 'text-success-600 dark:text-success-400' : 'text-stone-400 dark:text-stone-500'}`}>
+              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success-500' : 'bg-stone-300 dark:bg-stone-600'}`} />
               {isConnected ? 'Live' : 'Connecting...'}
             </span>
           )}
@@ -170,9 +170,9 @@ export default function RunsPage() {
 
       {/* Error message */}
       {error && (
-        <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-lg flex items-center gap-3">
-          <AlertCircle className="text-error-500" size={20} />
-          <p className="text-error-700">{error}</p>
+        <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/30 border border-error-200 dark:border-error-800 rounded-lg flex items-center gap-3">
+          <AlertCircle className="text-error-500 dark:text-error-400" size={20} />
+          <p className="text-error-700 dark:text-error-400">{error}</p>
         </div>
       )}
 
@@ -187,8 +187,8 @@ export default function RunsPage() {
 
       {showCreateForm && tasks.length === 0 && (
         <div className="card mb-6 p-6 text-center">
-          <p className="text-stone-500">Create a task first before starting a run.</p>
-          <a href="/tasks" className="text-accent-600 hover:underline mt-2 inline-block">
+          <p className="text-stone-500 dark:text-stone-400">Create a task first before starting a run.</p>
+          <a href="/tasks" className="text-accent-600 dark:text-accent-400 hover:underline mt-2 inline-block">
             Go to Tasks →
           </a>
         </div>
@@ -197,14 +197,14 @@ export default function RunsPage() {
       {/* Runs list */}
       {loading ? (
         <div className="card p-8 text-center">
-          <Loader2 className="mx-auto text-stone-400 animate-spin mb-2" size={24} />
-          <p className="text-stone-500">Loading runs...</p>
+          <Loader2 className="mx-auto text-stone-400 dark:text-stone-500 animate-spin mb-2" size={24} />
+          <p className="text-stone-500 dark:text-stone-400">Loading runs...</p>
         </div>
       ) : runsWithProgress.length === 0 ? (
         <div className="card p-8 text-center">
-          <Play className="mx-auto text-stone-300 mb-4" size={48} />
-          <p className="text-stone-500 mb-2">No evaluation runs yet</p>
-          <p className="text-sm text-stone-400">
+          <Play className="mx-auto text-stone-300 dark:text-stone-600 mb-4" size={48} />
+          <p className="text-stone-500 dark:text-stone-400 mb-2">No evaluation runs yet</p>
+          <p className="text-sm text-stone-400 dark:text-stone-500">
             Create a run to start evaluating your LLM outputs.
           </p>
         </div>
@@ -247,7 +247,7 @@ function RunCard({ run, onStart, onViewResults, onDelete }) {
 
   return (
     <div 
-      className={`card ${canViewResults ? 'cursor-pointer hover:border-accent-300 transition-colors' : ''}`}
+      className={`card ${canViewResults ? 'cursor-pointer hover:border-accent-300 dark:hover:border-accent-600 transition-colors' : ''}`}
       onClick={canViewResults ? onViewResults : undefined}
     >
       <div className="p-4">
@@ -256,8 +256,8 @@ function RunCard({ run, onStart, onViewResults, onDelete }) {
           <div className="flex items-center gap-3">
             <StatusIcon status={run.status} />
             <div>
-              <h3 className="font-medium text-stone-900">{run.name || `Run ${run.id.slice(0, 8)}`}</h3>
-              <p className="text-sm text-stone-500">
+              <h3 className="font-medium text-stone-900 dark:text-stone-100">{run.name || `Run ${run.id.slice(0, 8)}`}</h3>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
                 {run.task_name || 'Unknown task'} • {run.total_jobs || 0} jobs
               </p>
             </div>
@@ -271,7 +271,7 @@ function RunCard({ run, onStart, onViewResults, onDelete }) {
             )}
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-2 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-error-500 transition-colors"
+              className="p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg text-stone-400 hover:text-error-500 dark:hover:text-error-400 transition-colors"
               title="Delete run"
             >
               <Trash2 size={18} />
@@ -283,14 +283,14 @@ function RunCard({ run, onStart, onViewResults, onDelete }) {
         {(isActive || run.status === 'completed' || run.status === 'failed') && (
           <div className="mt-4">
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-stone-600">Progress</span>
-              <span className="text-stone-900 font-medium">
+              <span className="text-stone-600 dark:text-stone-400">Progress</span>
+              <span className="text-stone-900 dark:text-stone-100 font-medium">
                 {progress 
                   ? `${progress.completed + progress.failed} / ${progress.total}` 
                   : `${(run.completed_jobs || 0) + (run.failed_jobs || 0)} / ${run.total_jobs || 0}`}
               </span>
             </div>
-            <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-stone-100 dark:bg-stone-700 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
                   run.status === 'failed' ? 'bg-error-500' :
@@ -304,14 +304,14 @@ function RunCard({ run, onStart, onViewResults, onDelete }) {
             {/* Stats row - show even without socket progress for completed/failed */}
             {(progress || run.status === 'completed' || run.status === 'failed') && (
               <div className="flex items-center gap-6 mt-3 text-sm">
-                <span className="text-success-600">
+                <span className="text-success-600 dark:text-success-400">
                   ✓ {progress?.completed ?? run.completed_jobs ?? 0} completed
                 </span>
-                <span className="text-error-600">
+                <span className="text-error-600 dark:text-error-400">
                   ✗ {progress?.failed ?? run.failed_jobs ?? 0} failed
                 </span>
                 {progress && (
-                  <span className="text-stone-500">
+                  <span className="text-stone-500 dark:text-stone-400">
                     ◷ {progress.pending} pending
                   </span>
                 )}
@@ -322,8 +322,8 @@ function RunCard({ run, onStart, onViewResults, onDelete }) {
 
         {/* Models list */}
         {run.models && run.models.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-stone-100">
-            <p className="text-xs text-stone-500 mb-2">Models</p>
+          <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mb-2">Models</p>
             <div className="flex flex-wrap gap-2">
               {run.models.map(model => (
                 <span key={model} className="badge badge-neutral">
@@ -343,7 +343,7 @@ function RunCard({ run, onStart, onViewResults, onDelete }) {
  */
 function StatusIcon({ status }) {
   const icons = {
-    pending: <Clock size={20} className="text-stone-400" />,
+    pending: <Clock size={20} className="text-stone-400 dark:text-stone-500" />,
     running: <Loader2 size={20} className="text-accent-500 animate-spin" />,
     completed: <CheckCircle size={20} className="text-success-500" />,
     failed: <XCircle size={20} className="text-error-500" />,
@@ -357,7 +357,7 @@ function StatusIcon({ status }) {
 function StatusBadge({ status }) {
   const badges = {
     pending: <span className="badge badge-neutral">Pending</span>,
-    running: <span className="badge bg-accent-100 text-accent-700">Running</span>,
+    running: <span className="badge bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400">Running</span>,
     completed: <span className="badge badge-success">Completed</span>,
     failed: <span className="badge badge-error">Failed</span>,
   };
@@ -420,13 +420,13 @@ function CreateRunForm({ tasks, onSuccess, onCancel }) {
 
   return (
     <div className="card mb-6">
-      <div className="p-4 border-b border-stone-100">
-        <h2 className="text-lg font-semibold text-stone-900">Create New Run</h2>
+      <div className="p-4 border-b border-stone-100 dark:border-stone-700">
+        <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Create New Run</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         {error && (
-          <div className="p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
+          <div className="p-3 bg-error-50 dark:bg-error-900/30 border border-error-200 dark:border-error-800 rounded-lg text-error-700 dark:text-error-400 text-sm">
             {error}
           </div>
         )}
@@ -469,8 +469,8 @@ function CreateRunForm({ tasks, onSuccess, onCancel }) {
                 key={model.value}
                 className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                   formData.models.includes(model.value)
-                    ? 'border-accent-500 bg-accent-50'
-                    : 'border-stone-200 hover:border-stone-300'
+                    ? 'border-accent-500 bg-accent-50 dark:bg-accent-900/20'
+                    : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
                 }`}
               >
                 <input
@@ -482,15 +482,15 @@ function CreateRunForm({ tasks, onSuccess, onCancel }) {
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
                   formData.models.includes(model.value)
                     ? 'border-accent-500 bg-accent-500'
-                    : 'border-stone-300'
+                    : 'border-stone-300 dark:border-stone-600'
                 }`}>
                   {formData.models.includes(model.value) && (
                     <CheckCircle size={12} className="text-white" />
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-stone-900 text-sm">{model.label}</p>
-                  <p className="text-xs text-stone-500">{model.provider}</p>
+                  <p className="font-medium text-stone-900 dark:text-stone-100 text-sm">{model.label}</p>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">{model.provider}</p>
                 </div>
               </label>
             ))}
@@ -508,13 +508,13 @@ function CreateRunForm({ tasks, onSuccess, onCancel }) {
             value={formData.repetitions}
             onChange={(e) => setFormData({ ...formData, repetitions: parseInt(e.target.value) || 1 })}
           />
-          <p className="text-xs text-stone-500 mt-1">
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
             Run each input multiple times to measure consistency
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-stone-100">
+        <div className="flex justify-end gap-3 pt-4 border-t border-stone-100 dark:border-stone-700">
           <button
             type="button"
             onClick={onCancel}
