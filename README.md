@@ -156,7 +156,7 @@ EvalX/
 | Service | Port | URL |
 |---------|------|-----|
 | Frontend | 5173 | http://localhost:5173 |
-| API | 3000 | http://localhost:3000 |
+| API | 3001 | http://localhost:3001 |
 | Evaluator | 8000 | http://localhost:8000 |
 | PostgreSQL | 5432 | - |
 | Redis | 6379 | - |

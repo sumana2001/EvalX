@@ -13,7 +13,7 @@
 | **Redpanda Console** | http://localhost:8080 | — | — |
 | **Prometheus** | http://localhost:9090 | — | — |
 | **Frontend** | http://localhost:5173 | — | — |
-| **API** | http://localhost:3000 | — | — |
+| **API** | http://localhost:3001 | — | — |
 | **Evaluator** | http://localhost:8000 | — | — |
 
 ---
@@ -63,7 +63,7 @@ cd ~/Documents/GitHub/EvalX/api
 npm install  # first time only
 npm run dev
 ```
-**Expected:** `Server running on port 3000`
+**Expected:** `Server running on port 3001`
 
 ### Terminal 2 — Worker
 ```bash
@@ -206,7 +206,7 @@ Open **http://localhost:8080** (Redpanda Console)
 
 ### Create Task via API
 ```bash
-curl -X POST http://localhost:3000/api/tasks \
+curl -X POST http://localhost:3001/api/tasks \
   -H "Content-Type: application/json" \
   -d '{
     "name": "API Test Task",
@@ -219,12 +219,12 @@ curl -X POST http://localhost:3000/api/tasks \
 
 ### List All Tasks
 ```bash
-curl http://localhost:3000/api/tasks | jq
+curl http://localhost:3001/api/tasks | jq
 ```
 
 ### Create Run via API
 ```bash
-curl -X POST http://localhost:3000/api/runs \
+curl -X POST http://localhost:3001/api/runs \
   -H "Content-Type: application/json" \
   -d '{
     "task_id": "<TASK_UUID>",
@@ -235,22 +235,22 @@ curl -X POST http://localhost:3000/api/runs \
 
 ### Start Run
 ```bash
-curl -X POST http://localhost:3000/api/runs/<RUN_UUID>/start
+curl -X POST http://localhost:3001/api/runs/<RUN_UUID>/start
 ```
 
 ### Get Run Status
 ```bash
-curl http://localhost:3000/api/runs/<RUN_UUID> | jq
+curl http://localhost:3001/api/runs/<RUN_UUID> | jq
 ```
 
 ### Get Results
 ```bash
-curl http://localhost:3000/api/results/run/<RUN_UUID> | jq
+curl http://localhost:3001/api/results/run/<RUN_UUID> | jq
 ```
 
 ### Dashboard Stats
 ```bash
-curl http://localhost:3000/api/stats/dashboard | jq
+curl http://localhost:3001/api/stats/dashboard | jq
 ```
 
 ---
@@ -291,7 +291,7 @@ KAFKA_BROKERS=localhost:19092
 EVALUATOR_URL=http://localhost:8000
 GROQ_API_KEY=gsk_xxxxxxxxxxxxx
 GEMINI_API_KEY=AIzaxxxxxxxxxxxx
-PORT=3000
+PORT=3001
 ```
 
 ### worker/.env
