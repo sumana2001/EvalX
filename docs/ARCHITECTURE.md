@@ -183,11 +183,11 @@ flowchart LR
     end
     
     subgraph Routes["API Routes"]
-        T[/api/tasks]
-        R[/api/runs]
-        RES[/api/results]
-        P[/api/prompts]
-        S[/api/stats]
+        T["POST /tasks"]
+        R["POST /runs"]
+        RES["GET /results"]
+        P["POST /prompts"]
+        S["GET /stats"]
     end
     
     subgraph Services["Internal Services"]
