@@ -9,7 +9,7 @@
 | Service | URL | Username | Password |
 |---------|-----|----------|----------|
 | **Grafana** | http://localhost:3030 | `admin` | `evalx` |
-| **PostgreSQL** | localhost:5432 | `evalx` | `evalx` |
+| **PostgreSQL** | http://localhost:5432 | `evalx` | `evalx` |
 | **Redpanda Console** | http://localhost:8080 | — | — |
 | **Prometheus** | http://localhost:9090 | — | — |
 | **Frontend** | http://localhost:5173 | — | — |
@@ -202,44 +202,6 @@ Open **http://localhost:8080** (Redpanda Console)
 
 ---
 
-## 🐛 Step 5: Debug Common Issues
-
-### Issue: Progress stuck at 0%
-```bash
-# Check worker logs
-# Look for "Processing job" messages
-
-# Check Kafka consumer lag
-docker exec -it evalx-redpanda rpk group describe evalx-workers
-```
-
-### Issue: All jobs failing
-```bash
-# Check if evaluator is running
-curl http://localhost:8000/health
-
-# Check evaluator logs for errors
-# Common: missing GROQ_API_KEY in evaluator/.env
-```
-
-### Issue: Socket.io not updating
-```bash
-# Check API logs for "Socket.io connected"
-# Try hard refresh (Cmd+Shift+R)
-# Check browser console for WebSocket errors
-```
-
-### Issue: Database connection errors
-```bash
-# Check PostgreSQL is healthy
-docker exec -it evalx-postgres pg_isready -U evalx -d evalx
-
-# Check API can connect
-curl http://localhost:3000/api/stats/dashboard
-```
-
----
-
 ## 📊 Step 6: API Testing with cURL
 
 ### Create Task via API
@@ -319,24 +281,6 @@ TRUNCATE evaluation_failures, execution_results, evaluation_runs,
 
 ---
 
-## 📝 Quick Test Checklist
-
-- [ ] All 6 Docker containers healthy
-- [ ] API server running on :3000
-- [ ] Worker consuming from Kafka
-- [ ] Evaluator running on :8000
-- [ ] Frontend accessible on :5173
-- [ ] Can create task with items
-- [ ] Can add prompt variants
-- [ ] Can create and start run
-- [ ] Progress bar updates in real-time
-- [ ] Run completes successfully
-- [ ] Results page shows charts
-- [ ] Grafana dashboard has data
-- [ ] No errors in any terminal
-
----
-
 ## 🔑 Environment Files Reference
 
 ### api/.env
@@ -372,9 +316,3 @@ GROQ_API_KEY=gsk_xxxxxxxxxxxxx
 | Socket.io latency | < 100ms | Progress updates |
 | Evaluation time | 200-500ms/job | Depends on embedding model load |
 | E2E test (12 jobs) | 30-60 seconds | With 2 models |
-
----
-
-<p align="center">
-  <em>Last updated: April 2026</em>
-</p>
